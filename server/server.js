@@ -340,6 +340,10 @@ function hasTvPass(req) {
   return false;
 }
 const MICRO_HOST = /^micro\./i;
+// Hosts de la red local (IP, localhost o nombre sin punto): no tienen subdominio micro. ni certificado,
+// así que la app del micro se sirve aquí en vez de redirigir al subdominio.
+const LAN_HOST = /^(?:localhost|\d{1,3}(?:\.\d{1,3}){3}|\[[0-9a-f:]+\]|[^.]+)$/i;
+const esLan = h => LAN_HOST.test(String(h || '').replace(/:\d+$/, ''));
 const MICRO_FILES = { '/': '/m/index.html', '/manifest.webmanifest': '/m/manifest.webmanifest', '/sw.js': '/m/sw.js', '/m.css': '/m/m.css', '/m.js': '/m/m.js', '/despierto.mp4': '/m/despierto.mp4' };
 
 // ======================================================================= administración (subdominio admin.)
@@ -372,8 +376,10 @@ async function handleHttp(req, res) {
   const url = { pathname, search: parsed.search, searchParams: parsed.searchParams };
   const host = String(req.headers.host || '');
   if (await admin.handle(req, res, parsed)) return;   // el admin trabaja con la ruta tal cual llega (descodifica cada trozo)
-  // Subdominio micro.: la app del micro en la raíz
-  if (MICRO_HOST.test(host) && MICRO_FILES[url.pathname] && (req.method === 'GET' || req.method === 'HEAD')) {
+  // Subdominio micro.: la app del micro en la raíz. En una IP o un nombre de la red se sirven también sus
+  // ficheros —el manifiesto y el service worker— porque si no no hay manera de instalar la app. El dominio
+  // principal se comporta como siempre, y la raíz de la red sigue siendo la web informativa.
+  if (MICRO_FILES[url.pathname] && (MICRO_HOST.test(host) || (esLan(host) && url.pathname !== '/')) && (req.method === 'GET' || req.method === 'HEAD')) {
     return serveStatic(req, res, MICRO_FILES[url.pathname]);
   }
   // /setup ya no existe: a la portada
@@ -382,7 +388,7 @@ async function handleHttp(req, res) {
     return res.end();
   }
   // La dirección antigua del micro (/m) lleva al subdominio micro. del mismo dominio
-  if (!MICRO_HOST.test(host) && (url.pathname === '/m' || url.pathname === '/m/') && req.method === 'GET') {
+  if (!MICRO_HOST.test(host) && !esLan(host) && (url.pathname === '/m' || url.pathname === '/m/') && req.method === 'GET') {
     res.writeHead(301, { location: 'https://micro.' + host.replace(/^www\./, '').replace(/:\d+$/, '') + '/' + url.search });
     return res.end();
   }

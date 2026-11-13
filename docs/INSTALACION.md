@@ -15,6 +15,28 @@ npm start                 # http://localhost:8877
 npm test                  # pruebas del servidor (arranca uno aparte con datos temporales)
 ```
 
+## En la red de casa, sin certificado
+
+Se puede usar sin dominio ni certificado, pero lo del micro lo pone una regla del navegador, no de Gramola: solo
+deja escuchar a un origen seguro, y `http://192.168.x.x:8877` no lo es. La tele no necesita nada de todo esto:
+solo muestra, nunca escucha.
+
+- **Android:** en cada móvil, en Chrome, Brave o Edge, abrir `chrome://flags/#unsafely-treat-insecure-origin-as-secure`,
+  pegar la dirección completa del servidor (`http://192.168.50.165:8877`) y reiniciar el navegador. Hecho esto vuelve
+  a preguntar el permiso del micro y la app se puede instalar como siempre.
+- **iPhone:** Safari no tiene ese ajuste; ahí hace falta HTTPS de verdad (el despliegue de siempre).
+
+Con el origen ya tratado como seguro, la app canta desde la pestaña del navegador sin instalar nada. Si además se
+instala, se gana pantalla completa y bloqueo de pantalla; en una pestaña la pantalla puede apagarse a mitad de
+canción y el micro dejaría de oír.
+
+Para que eso funcione el manifiesto y el service worker se sirven también fuera del subdominio `micro.`, y `/m` ya
+no redirige al subdominio cuando el servidor se abre por IP o por nombre de la red: sin eso la pantalla de
+instalación se queda sin botón y no hay forma de entrar desde la portada.
+
+- **Clonado en Windows:** `web/vendor/` se sirve con hash de integridad y `core.autocrlf` lo pasaba a CRLF, así que
+  el navegador rechazaba React y la tele se quedaba en negro. `web/vendor/** -text` en `.gitattributes` lo evita.
+
 ## Despliegue, copias y datos
 
 - La versión sigue el esquema `1.AA.MMDD.HHMM` con la hora real del despliegue y se pone en todos los sitios de una
