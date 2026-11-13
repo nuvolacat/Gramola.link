@@ -36,12 +36,15 @@ addEventListener('selectstart', e => { if (!e.target.closest || !e.target.closes
 function isApp() {
   return matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone === true;
 }
+// En una LAN sin certificado basta con que el navegador deje usar el micro (origen tratado como seguro en los
+// ajustes del navegador). Si lo deja, no se fuerza la instalación: la pestaña puede cantar.
+function micAllowed() { return !!(window.isSecureContext && navigator.mediaDevices && navigator.mediaDevices.getUserMedia); }
 
 // Volver atrás: los botones «← Volver» y el gesto de volver del móvil (historial) hacen lo mismo
 const BACK = {};
 let fromPop = false;
 function show(id) {
-  if (!isApp() && id !== 's-install') id = 's-install';
+  if (!isApp() && !micAllowed() && id !== 's-install') id = 's-install';
   if (BACK[id] && !fromPop && id !== screen && !(history.state && history.state.g === id)) history.pushState({ g: id }, '');
   screen = id;
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
@@ -367,7 +370,7 @@ addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = 
 addEventListener('appinstalled', () => { $('b-install').hidden = true; $('install-steps').hidden = false; $('install-steps').innerHTML = '<li>¡Instalado! Ábrelo desde tu pantalla de inicio: se llama «Gramola».</li>'; });
 
 function startScreen() {
-  if (!standalone) {
+  if (!standalone && !micAllowed()) {
     // Desde el QR en el navegador: el código, para entrar luego desde la app (en iPhone no comparte datos con Safari)
     const c = (params.get('s') || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
     if (c.length === 4) { $('inst-room').hidden = false; $('inst-code').textContent = c; }
