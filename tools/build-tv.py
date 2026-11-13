@@ -89,7 +89,7 @@ sub("py(p,L){return L.y+L.h-56-(p/12)*(L.h-112);}", "py(p,L){return L.y+L.h-56-(
 sub("this.props.videoUrl", "GR.videoUrl(this)", count=0, name='vídeo')
 sub("this.chart=null;this.showResults(rows,rows[0].score>recN", "GR.saveRecord(this,rows);this.chart=null;this.showResults(rows,rows[0].score>recN", name='récords')
 sub("this.setState({mode:'jukebox',songSel:0,singers:[],jq:[1,2,3,4]},()=>this.startSing())",
-    "this.setState({mode:'jukebox',songSel:GR.randSong(),singers:[],jq:GR.jq()},()=>this.startSing())", name='jukebox')
+    "this.go('songs',{zone:'grid',mode:'jukebox',songF:0})", name='jukebox: elige canción')
 sub("beats(phase){", "beats(phase){return GR.beats(this,phase);", name='calibración')
 
 # --- videoclip con sus colores originales (decisión del usuario, 01-nov-2026), sin bucle: lo sincroniza el puente
@@ -308,6 +308,10 @@ sub("return {name:s.name,color:s.color,shape:s.shape,score:Math.round(this.score
 sub("turnPlayer(p){const ids=this.teamIds(p,p.turn);return ids[", "turnPlayer(p){const ids=this.teamIds(p,p.turn);if(!ids.length)return null;return ids[", name='Pásalo: equipo vacío')
 sub("partyGo(){const p=this.state.party,P0=PLAYERS[this.turnPlayer(p)];this.beginCount(",
     "partyGo(){const p=this.state.party,pi=this.turnPlayer(p);if(pi==null){this.toast('Ese equipo se ha quedado sin jugadores');this.P({step:'teams'});return;}const P0=PLAYERS[pi];this.beginCount(", name='Pásalo: ir sin jugador')
+# Pásalo: elige canción en vez de sacarla al azar (aquí el guardia ya dejó «const P0=PLAYERS[pi]» delante)
+sub("partyGo(){const p=this.state.party,pi=this.turnPlayer(p);if(pi==null){this.toast('Ese equipo se ha quedado sin jugadores');this.P({step:'teams'});return;}const P0=PLAYERS[pi];this.beginCount(",
+    "partyGo(){const p=this.state.party,pi=this.turnPlayer(p);if(pi==null){this.toast('Ese equipo se ha quedado sin jugadores');this.P({step:'teams'});return;}this.go('songs',{zone:'grid',mode:'party',songF:0});return;const P0=PLAYERS[pi];this.beginCount(",
+    name='Pásalo elige canción')
 sub("if(sp==='turn'){const pi=this.turnPlayer(p);V.turnName=PLAYERS[pi][0];", "if(sp==='turn'){const pi=this.turnPlayer(p);V.turnName=pi==null?'—':PLAYERS[pi][0];", name='Pásalo: nombre del turno')
 # Preparar partida: un jugador que se ha ido (fila sin nombre) no se convierte en cantante fantasma
 sub("singersFromSetup(){const m=this.state.mode;return this.state.setup.map((s,i)=>{if(this.isOff(i))return null;",
@@ -346,6 +350,12 @@ if fails:
     sys.exit(1)
 
 OUT.parent.mkdir(parents=True, exist_ok=True)
+# Jukebox y Pásalo no pasan por «Preparar» (no hay jugadores que preparar): canción elegida y a cantar
+sub("startSetup(){const l=this.songsList();if(!l.length)return;const song=l[Math.min(this.state.songF,l.length-1)];",
+    "startSetup(){const l=this.songsList();if(!l.length)return;const song=l[Math.min(this.state.songF,l.length-1)];"
+    "if(this.state.mode==='jukebox'){const q=SONGS.indexOf(song);this.setState({songSel:q,singers:[],jq:[q].concat((this.state.jq||[]).filter(x=>x!==q).slice(0,3))},()=>this.startSing());return;}"
+    "if(this.state.mode==='party'){const pi=this.turnPlayer(this.state.party);if(pi==null){this.toast('Ese equipo se ha quedado sin jugadores');this.P({step:'teams'});return;}const P0=PLAYERS[pi];this.beginCount({mode:'party',singers:[{id:P0[3],bot:P0[4],name:P0[0],color:P0[1],shape:P0[2],tol:DIFFS[this.state.settings.diff][1],team:0,part:0}],songSel:SONGS.indexOf(song)});return;}", name='sin Preparar en jukebox y party')
+
 OUT.write_text(s, encoding='utf-8')
 
 # Runtime del diseño y su sistema de estilos, con React/Babel servidos en local
