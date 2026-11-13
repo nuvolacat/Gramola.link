@@ -1,0 +1,8 @@
+# Los ficheros de web/vendor/ se sirven con hash de integridad (SRI): tienen que salir del clon byte a byte
+# iguales que están en el repositorio. Con core.autocrlf activo en Windows se escriben con CRLF, el hash deja de
+# coincidir y el navegador se niega a ejecutarlos: la tele se queda en negro sin decir por qué (lo detecta
+# support.js, que pide React por /vendor/ y recibe un rechazo).
+web/vendor/** -text
+
+# El resto del proyecto se escribe y se despliega en Linux: LF siempre, también en clones de Windows.
+* text=auto eol=lf
