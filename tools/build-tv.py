@@ -9,6 +9,7 @@ Cuando llegue una versión nueva del diseño: copiarla en diseno/ y volver a eje
     python3 tools/build-tv.py
 Si algún enganche ya no encaja (porque el diseño cambió ese trozo de código), el script se para y dice cuál.
 """
+import contextlib
 import os
 import re
 import shutil
@@ -30,12 +31,14 @@ def sub(old, new, regex=False, count=1, name=None):
     if regex:
         found = len(re.findall(old, s, flags=re.S))
         if not found or (count and found < count):
-            fails.append(name or old[:70]); return
+            fails.append(name or old[:70])
+            return
         s = re.sub(old, new, s, count=count or 0, flags=re.S)
     else:
         found = s.count(old)
         if not found or (count and found < count):
-            fails.append(name or old[:70]); return
+            fails.append(name or old[:70])
+            return
         s = s.replace(old, new, count if count else -1)
 
 
@@ -54,7 +57,17 @@ sub("{'60':1960,'80':1980,'90':1990,'00':2000,'10':2010}[DECS[s.dec]]", "GR.deca
 sub("room:'MOKA'", "room:GR.room||'····'", name='sala')
 sub("count:this.props.lobbyPlayers??4", "count:0", name='count')
 sub("settings:{diff:1,delay:110,music:8,fx:6,trail:this.props.showTrail===false?0:1,lyr:0,lang:0}",
-    "settings:GR.loadSettings({diff:1,delay:110,music:8,fx:6,trail:1,lyr:0,lang:0})", name='ajustes')
+    "settings:GR.loadSettings({diff:1,delay:110,music:8,fx:6,trail:1,lyr:0,lang:0,voz:0,vozModo:0})", name='ajustes')
+
+# --- quitar voces: una fila más en el menú de audio de la pausa (No · Suave · Fuerte)
+sub("if(a==='d')return this.setState({paF:Math.min(2,f+1)})",
+    "if(a==='d')return this.setState({paF:Math.min(3,f+1)})", name='pausa audio: bajar')
+sub("else this.setState({settings:{...st,delay:Math.max(0,Math.min(400,st.delay+d*10))}});}}",
+    "else if(f===2)this.setState({settings:{...st,delay:Math.max(0,Math.min(400,st.delay+d*10))}});else this.setState({settings:{...st,voz:Math.max(0,Math.min(2,(st.voz||0)+d))}});}}",
+    name='pausa audio: quitar voces')
+sub("V.paRows=[['Música',stg.music,String(stg.music)],['Efectos',stg.fx,String(stg.fx)],['Retraso del micro',Math.round(stg.delay/40),stg.delay+' ms']]",
+    "V.paRows=[['Música',stg.music,String(stg.music)],['Efectos',stg.fx,String(stg.fx)],['Retraso del micro',Math.round(stg.delay/40),stg.delay+' ms'],['Quitar voces',(stg.voz||0)*5,['No','Suave','Fuerte'][stg.voz||0]]]",
+    name='pausa audio: filas')
 sub("jq:[1,2,3,4],settings", "jq:[],settings", name='cola jukebox')
 sub("componentDidUpdate(prev,ps){if(ps&&ps.screen!==this.state.screen&&!this.trVia&&this.state.tr!=='pre')this.enter();if(prev.lobbyPlayers!==this.props.lobbyPlayers&&this.props.lobbyPlayers!=null)this.setState({count:this.props.lobbyPlayers});",
     "componentDidUpdate(prev,ps){if(ps&&ps.screen!==this.state.screen&&!this.trVia&&this.state.tr!=='pre')this.enter();", name='lobbyPlayers')
@@ -106,8 +119,12 @@ sub("drawBg(c,dt){const sc=this.state.screen;", "drawBg(c,dt){if(GR.skipBg&&GR.s
 # --- mando de la tele: «Pulsa OK para continuar» (no «A»), con el glifo OK del diseño
 sub("fontSize:32,fontWeight:800}},'A'),h('span',null,'para continuar')", "fontSize:26,fontWeight:800}},'OK'),h('span',null,'para continuar')", name='Pulsa OK')
 
-# --- Ajustes sin la opción de idioma (la app solo va en castellano)
-sub("{k:'lang',label:'Idioma',type:'seg',opts:['Castellano','Català'],help:'Idioma de la interfaz en la tele y en los móviles.'},", "", name='sin idioma en Ajustes')
+# --- Ajustes: la fila de idioma fuera (la app solo va en castellano); en su hueco, la voz de la canción
+sub("{k:'lang',label:'Idioma',type:'seg',opts:['Castellano','Català'],help:'Idioma de la interfaz en la tele y en los móviles.'},", "{k:'vozModo',label:'Voz de la canción',type:'seg',opts:['Quitada','En vivo','Entera'],help:'Quitada: usa la pista sin voz ya preparada y, si la canción no la tiene, la quita en vivo. En vivo: siempre al momento. Entera: deja la voz original.'},", name='voz en Ajustes, sin idioma')
+
+# --- la voz se elige en Ajustes; por defecto, quitada (y si la canción no trae pista, se quita en vivo)
+
+# --- y Pasa el micro también (antes la canción salía al azar)
 
 # --- letra centrada en pantalla (el diseño la alinea a la izquierda); nunca empieza antes de x0
 sub("const base=C.bg,dim=C.n5,fill=C.red5;", "const base=C.bg,dim=C.n5,fill=C.red5;const cx=w=>Math.max(x0,960-w/2);", name='letra: centro')
@@ -269,7 +286,7 @@ sub("if(ci>0&&now>prevEnd+0.35&&cur.start-now>2.2){", "if(ci>0&&now>prevEnd+0.35
 sub('\n    <div style="font-size:40px;font-weight:300;letter-spacing:-0.01em">Karaoke en casa. Tu móvil es el micro.</div>', '', name='bienvenida: sin eslogan')
 
 # --- versión (esquema 1.AA.MMDD.HHMM, fichero VERSION en la raíz del repo)
-VERSION = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'VERSION')).read().strip()
+VERSION = Path(__file__).resolve().parent.parent.joinpath('VERSION').read_text(encoding='utf-8').strip()
 sub('<span style="color:var(--color-neutral-700)">Versión 1.0.0</span>',
     f'<span style="color:var(--color-neutral-700);font-size:22px;font-weight:500;justify-self:center">{VERSION}</span>'
     '<span onClick="{{ onCredits }}" style="justify-self:end;display:flex;align-items:center;gap:12px;font-size:24px;font-weight:600;color:var(--color-neutral-700)">'
@@ -277,9 +294,10 @@ sub('<span style="color:var(--color-neutral-700)">Versión 1.0.0</span>',
 # …y la misma versión en la insignia del README (así el repo muestra siempre la versión desplegada)
 _readme = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'README.md')
 if os.path.exists(_readme):
-    _r = open(_readme, encoding='utf-8').read()
+    _r = Path(_readme).read_text(encoding='utf-8')
     _n = re.sub(r'badge/versi%C3%B3n-[0-9.]+-', 'badge/versi%C3%B3n-' + VERSION + '-', _r)
-    if _n != _r: open(_readme, 'w', encoding='utf-8').write(_n)
+    if _n != _r:
+        Path(_readme).write_text(_n, encoding='utf-8')
 
 
 # --- listón de afinación al 50 % (márgenes ÷ 0,5): textos del diseño con los valores reales
@@ -359,7 +377,7 @@ for a, b in [('https://unpkg.com/react@18.3.1/umd/react.production.min.js', '/ve
         print('AVISO: support.js ya no pide', a)
     sup = sup.replace(a, b)
 (TV / 'support.js').write_text(sup, encoding='utf-8')
-if (TV / '_ds').exists():
+with contextlib.suppress(OSError):
     shutil.rmtree(TV / '_ds')
 shutil.copytree(D / '_ds', TV / '_ds')
 print('OK: web/index.html montado desde el diseño (', len(s) // 1024, 'KB )')

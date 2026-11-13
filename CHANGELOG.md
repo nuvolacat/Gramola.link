@@ -2,6 +2,19 @@
 
 Versiones con el esquema `1.AA.MMDD.HHMM` (fecha y hora del despliegue).
 
+## 1.26.1113.1750
+- **Quitar voces al cantar.** Ajuste nuevo en *Ajustes → Voz de la canción*: **Quitada · En vivo · Entera**.
+  **Quitada** (por defecto) pone la pista preparada y, si la canción no la tiene, quita la voz al momento;
+  **En vivo** usa siempre el original con el filtro, y el nivel del filtro se ajusta en *Pausa → Ajustes de audio*
+  (cuarta fila: **No · Suave · Fuerte**); **Entera** deja la voz original. Se puede cambiar durante la canción.
+  Dos caminos, y el bueno manda:
+  - Si la canción tiene **`sin-voz.mp3`** (la deja el pre-procesador, `tools/quitar-voz.py`, con Demucs), al empezar se pone esa pista y no se procesa nada: es separación de voz de verdad, se puede rebobinar como cualquier mp3 y no cuesta ni un cálculo. Se mide en **−0,3 dB** en los huecos instrumentales (la música se queda entera) y baja la voz donde canta.
+  - Si no la tiene, un **filtro de centro en vivo** (AudioWorklet, ventana de 21 ms) baja lo que va centrado entre 140 Hz y 11 kHz, con suelo por bin y guardia para ficheros mono. Sirve, pero con la voz se lleva lo que comparta banda y centro: medido en −7,2 dB donde canta y −5,0 dB de mediana en los huecos, o sea que también toca la música. Por eso el pre-procesador.
+  - El retardo del filtro entra en la cuenta del reloj de la letra y de la puntuación.
+- El trabajador deja también la música sin voz (`sin-voz.mp3`) en la misma pasada en la que separa la voz para el editor, y usa la GPU si la hay.
+- `tools/quitar-voz.py` procesa la biblioteca entera (se puede cortar y volver a lanzar; lo hecho se salta). Aquí: 20 s por canción en la 3090.
+- Lo medido, lo que no está medido y cómo probarlo: `docs/QUITAR-VOCES.md`; banco de pruebas: `node tools/medir-quita-voces.mjs`.
+
 ## 1.26.1103.1347
 - Editor: el trozo de voz de una frase (cuando no empieza en un silencio) se afina con la curva de tono: empieza en el primer instante en que la voz tiene tono y acaba en el último. El reconocimiento adelanta cada palabra al hueco anterior (en «Dance The Night» unos 0,4 s) y marcaba en ámbar frases que estaban bien.
 

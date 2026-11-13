@@ -52,6 +52,8 @@ def log(*a):
 
 def device():
     import torch
+    if torch.cuda.is_available():
+        return 'cuda'
     return 'mps' if torch.backends.mps.is_available() else 'cpu'
 
 
@@ -71,6 +73,18 @@ def leer_audio(path, sr=SR, canales=2):
     out = r.stdout
     a = np.frombuffer(out, dtype=np.float32)
     return a.reshape(-1, canales).T.copy()
+
+
+def guardar_mp3_estereo(x, sr, path, kbps=192):
+    """(2, n) float32 → mp3 estéreo (para la pista sin voz)."""
+    cima = float(abs(x).max()) if x.size else 0.0
+    if cima > 0.999:
+        x = x * (0.999 / cima)
+    p = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'f32le', '-ar', str(sr), '-ac', '2', '-i', '-',
+                          '-c:a', 'libmp3lame', '-b:a', f'{kbps}k', path], stdin=subprocess.PIPE)
+    p.communicate(np.ascontiguousarray(x.T, dtype=np.float32).tobytes())
+    if p.returncode:
+        raise RuntimeError('ffmpeg no pudo guardar ' + path)
 
 
 def guardar_mp3(x, sr, path, kbps=128):
@@ -100,10 +114,16 @@ def separar_voz(path):
         except Exception:   # por si MPS no soporta alguna operación
             out = apply_model(model, x[None], device='cpu', split=True, overlap=0.25, progress=False)[0]
     out = out * (ref.std() + 1e-8) + ref.mean()
-    voz = out[model.sources.index('vocals')].mean(0).cpu().numpy().astype(np.float32)
+    voces = model.sources.index('vocals')
+    voz = out[voces].mean(0).cpu().numpy().astype(np.float32)
+    # La misma pasada deja la música sin la voz: la tele la usa para cantar sin oír al cantante original
+    resto = np.zeros_like(out[0].cpu().numpy())
+    for i in range(len(model.sources)):
+        if i != voces:
+            resto += out[i].cpu().numpy()
     del model, out, x
     liberar()
-    return voz
+    return voz, resto.astype(np.float32)
 
 
 # ---------------------------------------------------------------------------- 2. tono
@@ -680,9 +700,10 @@ def analizar(audio, salida, progreso=lambda p, m: None, idioma=None):
     """voz.mp3 + voz-tono.json + voz-tramos.json (tramos de voz y lo que dice, si hay faster-whisper)."""
     os.makedirs(salida, exist_ok=True)
     progreso(5, 'Separando la voz')
-    voz = separar_voz(audio)
-    progreso(50, 'Guardando la voz')
+    voz, resto = separar_voz(audio)
+    progreso(48, 'Guardando la voz y la música sin voz')
     guardar_mp3(voz, SR, os.path.join(salida, 'voz.mp3'))
+    guardar_mp3_estereo(resto, SR, os.path.join(salida, 'sin-voz.mp3'))
     progreso(55, 'Midiendo el tono')
     t, midi = medir_tono(voz)
     json.dump(curva_json(t, midi), open(os.path.join(salida, 'voz-tono.json'), 'w'), separators=(',', ':'))

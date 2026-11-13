@@ -11,7 +11,7 @@
 La tele es el escenario (**funciona en el navegador**) y cada móvil es un micrófono:
 escaneas el QR, eliges tu color y cantas. Gramola escucha el tono de cada voz y puntúa lo afinado que vas.
 
-![Versión](https://img.shields.io/badge/versi%C3%B3n-1.26.1103.1347-ec3013)
+![Versión](https://img.shields.io/badge/versi%C3%B3n-1.26.1113.1750-ec3013)
 ![Navegador](https://img.shields.io/badge/navegador-Edge%20%C2%B7%20Chrome%20%C2%B7%20Safari-1f6feb)
 ![PWA](https://img.shields.io/badge/micro-web%20%2B%20PWA-ec3013)
 ![Node.js 22+](https://img.shields.io/badge/Node.js-22%2B-5fa04e?logo=nodedotjs&logoColor=white)

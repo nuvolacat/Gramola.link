@@ -134,6 +134,8 @@ function scanSongs(force) {
       // ?v=fecha del fichero: si cambia la portada (mismo nombre), cambia la dirección y la tele no tira de caché
       cover: head.COVER ? base + encodeURIComponent(head.COVER) + '?v=' + mtimeOf(path.join(dir, head.COVER)) : null,
       hasVideo: !!head.VIDEO,
+      // Pista sin voz que deja el pre-procesador (tools/quitar-voz.py): si está, la tele canta sobre ella
+      sinVoz: fs.existsSync(path.join(dir, 'sin-voz.mp3')) ? base + 'sin-voz.mp3?v=' + mtimeOf(path.join(dir, 'sin-voz.mp3')) : null,
       megamix: megamixOf(dir, base),
       isNew: !!novedades[d.name],
       draft: fs.existsSync(path.join(dir, 'borrador.json')),
