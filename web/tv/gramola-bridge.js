@@ -35,14 +35,14 @@ window.GR = (() => {
   // ------------------------------------------------------------------ ajustes guardados
   // Ajustes guardados: cada valor dentro de su rango (un localStorage tocado a mano no deja la pantalla en blanco)
   G.loadSettings = def => {
-    const s = { ...def, ...LS.get('gramola-ajustes', {}) }, R = { diff: [0, 2], delay: [0, 400], music: [0, 10], fx: [0, 10], trail: [0, 1], lyr: [0, 1], lang: [0, 1] };
+    const s = { ...def, ...LS.get('gramola-ajustes', {}) }, R = { diff: [0, 2], delay: [0, 400], music: [0, 10], fx: [0, 10], trail: [0, 1], lyr: [0, 1], lang: [0, 1], voz: [0, 2], vozModo: [0, 2] };
     for (const k in R) { const v = Number(s[k]); s[k] = Number.isFinite(v) ? Math.max(R[k][0], Math.min(R[k][1], Math.round(v))) : def[k]; }
     return s;
   };
   let lastSettings = '';
   function persistSettings(st) {
     const j = JSON.stringify(st);
-    if (j !== lastSettings) { lastSettings = j; LS.set('gramola-ajustes', st); applyVolumes(); }
+    if (j !== lastSettings) { lastSettings = j; LS.set('gramola-ajustes', st); applyVolumes(); vozAplicar(st); }
   }
 
   // ------------------------------------------------------------------ red
@@ -241,6 +241,7 @@ window.GR = (() => {
         const song = parseUltraStar(decodeText(await (await fetch(withK(txt))).arrayBuffer()));
         const base = txt.slice(0, txt.lastIndexOf('/') + 1);
         song.audioUrl = song.audio ? withK(base + encodeURIComponent(song.audio)) : null;
+        song.sinVoz = e.sinVoz ? withK('/' + e.sinVoz.replace(/^\//, '')) : null;   // pre-procesada por el trabajador (Demucs)
         song.videoUrl = song.video ? base + encodeURIComponent(song.video) : null;
         if (song.audioUrl) out[i] = { e, song };
       } catch {}
@@ -1012,10 +1013,86 @@ window.GR = (() => {
   }
   G.megaVolume = () => { const M = G.mega; if (M && M.master) M.master.gain.value = vol('music'); };
 
+  // ------------------------------------------------------- quitar voces (filtro en vivo)
+  // Dos caminos, y el bueno manda:
+  //   1. Si la canción tiene `sin-voz.mp3` (la dejó el pre-procesador con Demucs en el servidor), al empezar se pone
+  //      esa pista y no se procesa nada: es voz separada de verdad y no cuesta ni un cálculo.
+  //   2. Si no la tiene, este filtro de centro (STFT, AudioWorklet) quita lo que va centrado. Sirve, pero baja también
+  //      lo que comparta banda y centro con la voz.
+  const QV_URL = '/tv/quita-voces-worklet.js';
+  const QV_LAT = { s: 0 };            // retardo del filtro en segundos (lo declara el propio procesador)
+  let vozNivel = 0, qvProm = null;
+  function moduloQV(ctx) {
+    if (!ctx || !ctx.audioWorklet) return Promise.resolve(false);   // navegador sin AudioWorklet: se queda sin filtro
+    if (!qvProm) qvProm = ctx.audioWorklet.addModule(QV_URL).then(() => true)
+      .catch(e => { console.warn('[quitar voces] no se pudo cargar el filtro:', e && e.message); return false; });
+    return qvProm;
+  }
+  const pistaSinVoz = S => !!(S && S.song && S.song.sinVoz);
+  // Ajustes → Voz de la canción: 0 quitada (con la pista preparada; si no la hay, se quita en vivo), 1 en vivo, 2 entera
+  const quierePreparada = (st, S) => (((st && st.vozModo) | 0) === 0 && pistaSinVoz(S));
+  const nivelFiltro = st => {
+    const modo = (st && st.vozModo) | 0;
+    if (modo === 2) return 0;                       // entera: no se toca
+    if (modo === 1) return Math.max(1, (st && st.voz) | 0);   // en vivo: al menos suave, si no no haría nada
+    return 2;                                       // quitada sin pista preparada: en vivo y fuerte
+  };
+  function vozPoner(g, nivel) {
+    if (!g || !g.ctx || g.dead) return;
+    if (g.qv) { g.qv.port.postMessage({ nivel }); return; }
+    if (!nivel || g.qvPidiendo) return;
+    g.qvPidiendo = true;
+    moduloQV(g.ctx).then(ok => {
+      g.qvPidiendo = false;
+      if (!ok || g.dead || g.qv) return;
+      try {
+        const n = new AudioWorkletNode(g.ctx, 'quita-voces', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [2], channelCount: 2, channelCountMode: 'explicit' });
+        n.port.onmessage = e => { const d = e.data || {}; if (d.type === 'listo') QV_LAT.s = +d.latencia || 0; };
+        g.src.disconnect();          // (el mismo nodo, sin volver a crear el medio: no hay hueco ni salto)
+        g.src.connect(n); n.connect(g.dry);
+        g.qv = n;
+        n.port.postMessage({ nivel: vozNivel });
+      } catch (e) { console.warn('[quitar voces]', e && e.message); }
+    });
+  }
+  function vozAplicar(st) {
+    st = st || {};
+    const c = g(), a = G.audio;
+    if (!c || !a) return;
+    const S = SONGS[c.state.songSel];
+    const pre = quierePreparada(st, S);
+    // Cambiar de pista a mitad de canción: mismo <audio>, así el grafo de Web Audio sigue enganchado y el reloj no salta.
+    if (Boolean(a._sinVoz) !== Boolean(pre) && a._cambiarPista) a._cambiarPista(pre);
+    vozNivel = pre ? 0 : nivelFiltro(st);
+    if (a._g) vozPoner(a._g, vozNivel);
+  }
+  G.vozAplicar = vozAplicar;
+
   // ------------------------------------------------------------------ audio de la canción y reloj
   function startAudio(chart, S) {
     stopAudio();
-    const a = new Audio(S.song.audioUrl);
+    // Ajustes → Voz de la canción: quitada (con la pista preparada; si no la hay, en vivo), en vivo o entera.
+    const st = (g() && g().state.settings) || {};
+    const conSinVoz = quierePreparada(st, S);            // pre-procesada: la voz ya no está en el fichero
+    vozNivel = conSinVoz ? 0 : nivelFiltro(st);
+    const a = new Audio(conSinVoz ? S.song.sinVoz : S.song.audioUrl);
+    a._sinVoz = conSinVoz;
+    // Cambiar de pista a mitad de canción (Ajustes → Voz): mismo elemento, así el grafo de Web Audio sigue enganchado
+    // y el reloj del audio no salta de golpe: se recoloca en el mismo segundo y sigue sonando.
+    a._cambiarPista = pre => {
+      const cc = g();
+      const SS = cc && SONGS[cc.state.songSel];
+      const url = pre ? (SS && SS.song && SS.song.sinVoz) : (SS && SS.song && SS.song.audioUrl);
+      if (!url) return;
+      const pos = a.currentTime, sonando = !a.paused;
+      a._sinVoz = pre;
+      a.addEventListener('loadedmetadata', () => {
+        try { a.currentTime = pos; } catch (_) { }
+        if (sonando) a.play().catch(() => { });
+      }, { once: true });
+      a.src = url;
+      a.load();
+    };
     a.preload = 'auto';
     a.volume = vol('music');
     G.audio = a; G.clock = { at: 0, perf: 0, playing: false };
@@ -1053,7 +1130,9 @@ window.GR = (() => {
     try {
       const src = ctx.createMediaElementSource(a), dry = ctx.createGain();
       src.connect(dry); dry.connect(ctx.destination);
-      a._g = { ctx, dry };
+      a._g = { ctx, dry, src, qv: null, dead: false };
+      // La pista pre-procesada ya viene sin voz: el filtro en vivo no se mete (solo estropearía lo que queda).
+      if (vozNivel && !a._sinVoz) vozPoner(a._g, vozNivel);
     } catch { a._g = null; }
     return a._g;
   }
@@ -1074,16 +1153,18 @@ window.GR = (() => {
     if (g) { const t = g.ctx.currentTime; g.dry.gain.cancelScheduledValues(t); g.dry.gain.setValueAtTime(0.0001, t); g.dry.gain.exponentialRampToValueAtTime(1, t + PAUSA.IN); }
     a.play().catch(() => {});
   }
-  function stopAudio() { megaStop(); if (G.audio) { G.audio.pause(); G.audio.removeAttribute('src'); G.audio.load(); G.audio = null; } }
+  function stopAudio() { megaStop(); if (G.audio) { if (G.audio._g) G.audio._g.dead = true; G.audio.pause(); G.audio.removeAttribute('src'); G.audio.load(); G.audio = null; } }
   G.stopAudio = stopAudio;   // (el diseño lo llama si se cancela la transición hacia el canto)
   // Retraso de salida del audio de un AudioContext (lo que tarda el sonido en salir por los altavoces de la tele).
   // Cuando la canción suena por Web Audio, el reloj de la letra y las cajas lo descuenta para ir con lo que se oye.
   G.AV_EXTRA = 0;   // ajuste fino manual (s), por si una tele concreta lo necesita
   const outLat = ctx => ctx ? Math.min(0.5, (ctx.outputLatency || 0) + (ctx.baseLatency || 0)) : 0;
-  G.outLat = () => ({ cancion: G.audio && G.audio._g ? +outLat(G.audio._g.ctx).toFixed(3) : 0, megamix: G.mega && G.mega.ctx ? +outLat(G.mega.ctx).toFixed(3) : 0 });
+  // (el filtro de quitar voces añade su ventana de retardo: se descuenta igual que la salida del AudioContext)
+  const latCancion = g => outLat(g.ctx) + (g.qv ? QV_LAT.s : 0);
+  G.outLat = () => ({ cancion: G.audio && G.audio._g ? +latCancion(G.audio._g).toFixed(3) : 0, megamix: G.mega && G.mega.ctx ? +outLat(G.mega.ctx).toFixed(3) : 0 });
   function audioNow() {
     if (G.mega && G.mega.ctx) return Math.max(0, megaNow() - outLat(G.mega.ctx) - G.AV_EXTRA);
-    return Math.max(0, audioNowRaw() - (G.audio && G.audio._g ? outLat(G.audio._g.ctx) : 0) - G.AV_EXTRA);
+    return Math.max(0, audioNowRaw() - (G.audio && G.audio._g ? latCancion(G.audio._g) : 0) - G.AV_EXTRA);
   }
   function audioNowRaw() {
     const a = G.audio;
@@ -1634,6 +1715,8 @@ window.GR = (() => {
     const antes = FOCO(c.state);
     requestAnimationFrame(() => requestAnimationFrame(() => { const s = c.state; if (s.screen === 'sing' && !s.paused) return; if (FOCO(s) !== antes) zup(); }));
   };
+
+
   // Aplausos del público al salir los resultados: grabación real de 6 s (CC0, Wikimedia Commons), por Web Audio
   // para no quitarle el reproductor a la música de fondo en la tele LG
   let applauseBuf = null, applauseP = null;

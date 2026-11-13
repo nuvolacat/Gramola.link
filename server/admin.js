@@ -577,7 +577,7 @@ module.exports = function admin(ctx) {
   const JOBS = path.join(DATA_DIR, 'trabajos');
   const WORKER_FILE = path.join(DATA_DIR, 'trabajador.json');
   // Lo que deja el trabajador junto a la canción: la voz sola, su tono y los tramos de voz con lo que dice (reconocimiento)
-  const VOZ_FILES = ['voz.mp3', 'voz-tono.json', 'voz-tramos.json'];
+  const VOZ_FILES = ['voz.mp3', 'voz-tono.json', 'voz-tramos.json', 'sin-voz.mp3'];   // (sin-voz.mp3: la música sin la voz, para la tele)
   let worker = { seen: 0, host: '', job: null };
   const jobPath = (id, f = 'job.json') => path.join(JOBS, safeName(id), f);
   const jobGet = id => { const j = readJson(jobPath(id), null); if (!j) throw httpErr(404, 'No existe ese trabajo'); return j; };
