@@ -2,6 +2,10 @@
 
 Versiones con el esquema `1.AA.MMDD.HHMM` (fecha y hora del despliegue).
 
+## 1.26.1126.1149
+- **Calibración del retraso automática**: basta con dejar el móvil junto al altavoz de la tele; el propio móvil oye los 8 pitidos y mide el retraso (decir «pa» con cada pitido sigue valiendo). Textos de la tele cambiados en `tools/build-tv.py`; en el móvil, durante la calibración, «Calibrando · Junto a la tele» en lugar de los puntos.
+- **Votar las actuaciones**: en los resultados, quien no ha cantado ve «Vota la actuación» y puntúa de 1 a 5 estrellas a cada cantante (puede cambiar su voto). La tele enseña arriba a la derecha la **nota del público** (media y número de votos) mientras están los resultados. Ajuste «Votar las actuaciones».
+
 ## 1.26.1126.1146
 - **Tu rango de voz** en «Probar el micro»: guarda la nota más grave y la más aguda que aguantas (un cuarto de segundo con tono claro), cuántas octavas abarca y, orientativo, el tipo de voz. «Medir otra vez» lo reinicia.
 - **Calentar la voz** (botón en «Esperando»): respiración guiada (3 ciclos de 4 s coger aire, 4 s aguantar y 6 s soltar) y escalas Do-Re-Mi-Fa-Sol-Fa-Mi-Re-Do que el móvil toca y tú repites, en tres rondas un semitono más arriba; cada nota cuenta si la aguantas 0,4 s a menos de medio semitono, con «sube / baja» de ayuda. Empieza en una nota cómoda según tu rango (o la que elijas con «Más grave / Más agudo»).

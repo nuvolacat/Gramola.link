@@ -43,6 +43,7 @@ Una conexión WebSocket en `/ws` por dispositivo; mensajes JSON con `type`.
 | `{type:"pitch", n, v, lat}` · `{type:"input", key}` · `{type:"leave"}` | móvil → servidor | Voz (25/s), mando, salir. |
 | `{type:"photo", data}` | móvil → servidor | Foto del jugador (cámara frontal, ≤48 KB). Solo se guarda en memoria mientras dura la sala. |
 | `{type:"react", e}` | móvil → servidor → tele | Reacción del público (`aplauso`, `fuego`, `corazon`, `estrella`, `risa`, `fiesta`); como mucho 4 por segundo por jugador. A la tele le llega con `p`, `name` y `color`. |
+| `{type:"voto", para, v}` | móvil → servidor → tele | Voto del público (1 a 5 estrellas) a un cantante en los resultados; no a uno mismo; como mucho 5 por segundo. A la tele le llega con `p`. |
 | `{type:"roster", players}` · `{type:"host", online}` · `{type:"kicked"}` · `{type:"closed"}` | servidor → móvil | Lista de la sala, tele conectada o no, expulsado, sala cerrada. |
 | `{type:"resultado", r}` | servidor → móvil | Resultado de la canción: el móvil lo guarda en el historial (si está activado), revisa los logros y ofrece compartirlo como imagen (4 estilos). |
 | `{type:"pts", s}` | servidor → móvil | Tus puntos mientras cantas (arriba a la derecha de la pantalla del micro). |

@@ -691,6 +691,16 @@ wss.on('connection', (ws, req) => {
         return;
       }
       if (m.type === 'input') return toHost(room, { type: 'input', p: player.id, key: clean(m.key, 8) });
+      // Voto del público a un cantante (1 a 5 estrellas), a la tele; el que no canta puede cambiar su voto
+      if (m.type === 'voto') {
+        const v = Math.round(Number(m.v)), para = Math.round(Number(m.para));
+        if (!(v >= 1 && v <= 5) || !room.players.has(para) || para === player.id) return;
+        const t = Date.now();
+        player.votos = (player.votos || []).filter(x => t - x < 1000);
+        if (player.votos.length >= 5) return;
+        player.votos.push(t);
+        return toHost(room, { type: 'voto', p: player.id, para, v });
+      }
       // Reacción del público (aplauso, fuego…): a la tele, como mucho 4 por segundo por jugador
       if (m.type === 'react') {
         if (!REACCIONES.includes(m.e)) return;

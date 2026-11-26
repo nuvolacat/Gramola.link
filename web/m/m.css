@@ -244,3 +244,13 @@ input, textarea { -webkit-user-select: text; user-select: text; -webkit-touch-ca
 .cal-tono[hidden] { display: none; }
 .cal-tono span { font-size: 14px; font-weight: 800; }
 .cal-tono .ghost { padding: 10px 12px; font-size: 13px; }
+#s-sing.calib .sing-p b { font-size: 18px; letter-spacing: 0; }
+
+/* Votar la actuación (en los resultados, quien no ha cantado) */
+.votar[hidden] { display: none; }
+.votar .lbl { margin-top: 0; }
+.votar .vf { display: flex; align-items: center; gap: 10px; background: #fff; border: 2px solid var(--ink); padding: 8px 10px; margin-bottom: 8px; }
+.votar .vf i { width: 14px; height: 14px; flex-shrink: 0; }
+.votar .vf b { flex: 1; font-size: 15px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.votar .vf button { border: 0; background: none; font-size: 26px; line-height: 1; padding: 0 1px; color: var(--soft); }
+.votar .vf button.on { color: #f2c230; }

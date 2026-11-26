@@ -96,6 +96,7 @@ window.GR = (() => {
       else if (c) c.setState({});
     }
     else if (m.type === 'react') G.reaccion(m);
+    else if (m.type === 'voto') G.voto(m, c);
     else if (m.type === 'input') {
       const k = { up: 'u', down: 'd', left: 'l', right: 'r', ok: 'ok', back: 'back', y: 'y', x: 'x' }[m.key];
       // En la sala, Y añade un simulado y X echa al último: eso solo desde el mando de la tele, no desde un móvil
@@ -180,6 +181,31 @@ window.GR = (() => {
     n.style.background = /^#[0-9a-f]{6}$/i.test(m.color || '') ? m.color : '#fff';
     d.append(im, n); caja.appendChild(d);
     setTimeout(() => d.remove(), 3500);
+  };
+  // ------------------------------------------------------------------ votos del público
+  // En los resultados, quien no ha cantado vota de 1 a 5 estrellas a cada cantante desde su móvil: la tele enseña
+  // la nota media del público en un panel encima (capa propia; se quita al salir de los resultados)
+  G.votos = null;
+  G.voto = (m, c) => {
+    if (G.preview || !c || c.state.screen !== 'results') return;
+    const R = c.state.results; if (!R) return;
+    if (!G.votos || G.votos.r !== R) G.votos = { r: R, de: new Map() };
+    G.votos.de.set(m.p + ':' + m.para, { para: m.para, v: m.v });
+    let caja = document.getElementById('g-votos');
+    if (!caja) {
+      caja = document.createElement('div'); caja.id = 'g-votos';
+      caja.style.cssText = 'position:fixed;right:2.5vw;top:3vh;z-index:39;background:#201e1d;color:#fff;padding:1.4vh 1.6vw;font-family:Archivo,sans-serif;min-width:16vw;box-shadow:0 1vh 3vh rgba(0,0,0,.3)';
+      document.body.appendChild(caja);
+      const quitar = setInterval(() => { const cc = g(); if (!cc || cc.state.screen !== 'results' || (G.votos && cc.state.results !== G.votos.r)) { clearInterval(quitar); caja.remove(); G.votos = null; } }, 800);
+    }
+    const por = new Map();
+    for (const { para, v } of G.votos.de.values()) { const a = por.get(para) || []; a.push(v); por.set(para, a); }
+    const filas = [...por.entries()].map(([id, vs]) => {
+      const pl = G.players.find(x => x.id === id) || {}, med = vs.reduce((x, y) => x + y, 0) / vs.length;
+      const est = '★★★★★'.slice(0, Math.round(med)) + '☆☆☆☆☆'.slice(0, 5 - Math.round(med));
+      return `<div style="display:flex;align-items:center;gap:1vw;margin-top:.8vh"><span style="width:1.4vh;height:1.4vh;background:${esc(pl.color || '#fff')}"></span><b style="font-size:2.2vh;flex:1">${esc(pl.name || '')}</b><span style="font-size:2.2vh;color:#f2c230;letter-spacing:.1em">${est}</span><b style="font-size:2.2vh">${med.toFixed(1).replace('.', ',')}</b><span style="font-size:1.6vh;opacity:.7">(${vs.length})</span></div>`;
+    }).join('');
+    caja.innerHTML = `<div style="font-size:1.5vh;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#ec3013">Nota del público</div>${filas}`;
   };
   // Puntos en directo a cada móvil que canta (unas 4 veces por segundo y solo si han cambiado)
   let ptsT = 0; const ptsUlt = new Map();
@@ -1600,7 +1626,7 @@ window.GR = (() => {
         clearInterval(c.bTimer);
         G.cal.on = false;
         const m = cl.marks.slice().sort((x, y) => x - y);
-        if (m.length < 3) { c.setState({ calib: { ...cl, phase: 'idle', beat: -1 } }); c.toast('No te hemos oído: acerca el móvil y di «pa» con cada pitido'); return; }
+        if (m.length < 3) { c.setState({ calib: { ...cl, phase: 'idle', beat: -1 } }); c.toast('No se han oído los pitidos: deja el móvil junto al altavoz de la tele (o di «pa» con cada uno)'); return; }
         if (phase === 'measure') {
           const v = Math.max(0, Math.min(400, Math.round(m[m.length >> 1] / 5) * 5));
           c.setState({ calib: { ...cl, phase: 'done', beat: -1, ms: v, manual: v, f: 2 } });

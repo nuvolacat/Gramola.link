@@ -50,6 +50,7 @@ const AJ = [
   { k: 'brillo', t: 'Bajar el brillo al cantar', d: 'La pantalla se oscurece durante la canción para ahorrar batería y vuelve al acabar.', si: nativo },
   { k: 'bateria', t: 'Avisar con poca batería', d: 'Te avisa si queda poca batería o si el modo de ahorro está activado: puede frenar el micro.', si: nativo },
   { k: 'reacciones', t: 'Reacciones del público', d: 'Mientras otro canta, manda aplausos, fuego o corazones que salen en la tele.', si: true },
+  { k: 'votar', t: 'Votar las actuaciones', d: 'Al acabar una canción que no has cantado, puntúa de 1 a 5 estrellas a quien ha cantado.', si: true },
   { k: 'historial', t: 'Guardar tu historial', d: 'Tus resultados y logros, solo en este móvil. Desactivado, puedes compartir el último pero no se guarda.', si: true },
   { k: 'microMovil', t: 'Usar siempre el micro del móvil', d: 'Aunque haya auriculares o AirPods conectados. Desactívalo para cantar con un micro externo.', si: true },
 ];
@@ -69,6 +70,7 @@ function aplicarAjuste(k) {
   if (k === 'brillo' && nat && screen === 's-sing') nat.brillo({ bajo: aj('brillo') }).catch(() => {});
   if (k === 'bateria') revisarBateria();
   if (k === 'reacciones') verReacciones(lastState);
+  if (k === 'votar') verVotar(lastState);
   if (k === 'microMovil' && tracker && tracker.setIntegrado) tracker.setIntegrado(aj('microMovil'));
 }
 function pintarAjustes() {
@@ -117,6 +119,32 @@ async function revisarBateria() {
 }
 
 // Reacciones del público: mientras otro canta (o en los resultados), aplausos y demás que salen en la tele
+// Votar: en los resultados, a cada cantante (si tú no has cantado esa canción)
+let roster = [], votos = {}, votoClave = null;
+function verVotar(st) {
+  const caja = $('votar');
+  const cantantes = st && Array.isArray(st.singers) ? st.singers.filter(id => me && id !== me.id) : [];
+  const ver = aj('votar') && joined && st && st.screen === 'results' && me && !(st.singers || []).includes(me.id) && cantantes.length > 0;
+  caja.hidden = !ver;
+  if (!ver) { if (!st || st.screen !== 'results') votoClave = null; return; }
+  const clave = cantantes.join(',');
+  if (votoClave !== clave) { votoClave = clave; votos = {}; }
+  const filas = $('votar-filas'); filas.innerHTML = '';
+  cantantes.forEach(id => {
+    const pl = roster.find(x => x.id === id) || { name: 'Cantante', color: '#9b9797' };
+    const f = document.createElement('div'); f.className = 'vf';
+    const i = document.createElement('i'); i.style.background = pl.color;
+    const b = document.createElement('b'); b.textContent = pl.name;
+    f.append(i, b);
+    for (let v = 1; v <= 5; v++) {
+      const e = document.createElement('button'); e.textContent = '★'; e.setAttribute('aria-label', v + ' estrellas');
+      if ((votos[id] || 0) >= v) e.classList.add('on');
+      e.onclick = () => { votos[id] = v; net.send({ type: 'voto', para: id, v }); toque(10); verVotar(lastState); };
+      f.append(e);
+    }
+    filas.append(f);
+  });
+}
 function verReacciones(st) {
   const s = st && st.screen;
   $('reac').hidden = !(aj('reacciones') && joined && ['sing', 'countdown', 'results'].includes(s) && !isSinging(st));
@@ -220,7 +248,7 @@ function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
   // App: brillo bajo mientras se canta (si está activado) y aviso de batería en «Esperando»
   if (nat && aj('brillo') && (id === 's-sing') !== (antes === 's-sing')) nat.brillo({ bajo: id === 's-sing' }).catch(() => {});
-  if (id === 's-sing' && antes !== 's-sing') $('sing-pts').textContent = '0';   // canción nueva: los puntos empiezan de cero
+  if (id === 's-sing' && antes !== 's-sing' && !$('s-sing').classList.contains('calib')) $('sing-pts').textContent = '0';   // canción nueva: los puntos empiezan de cero
   clearInterval(batT);
   if (id === 's-wait') { revisarBateria(); batT = setInterval(revisarBateria, 60000); } else $('tip-bat').hidden = true;
   document.querySelector('meta[name=theme-color]').content = id === 's-sing' ? '#f3f2f2' : '#f3f2f2';
@@ -309,6 +337,11 @@ function onMessage(m) {
     return;
   }
   if (m.type === 'state') {
+    // Calibración del retraso: en vez de puntos, aviso de dejar el móvil junto a la tele
+    const calibrando = m.screen === 'calibrate';
+    document.querySelector('.sing-p small').textContent = calibrando ? 'Calibrando' : 'Puntos';
+    if (calibrando) $('sing-pts').textContent = 'Junto a la tele';
+    $('s-sing').classList.toggle('calib', calibrando);
     lastState = m;
     if (!joined) return;
     setWaitTexts(m);
@@ -327,6 +360,7 @@ function onMessage(m) {
     return;
   }
   // Orden desde la administración: recargar la app (tras un despliegue)
+  if (m.type === 'roster' && Array.isArray(m.players)) { roster = m.players; if (lastState && lastState.screen === 'results') verVotar(lastState); return; }
   if (m.type === 'pts') { $('sing-pts').textContent = miles(m.s); return; }
   if (m.type === 'buzz') { if (aj('vibCantar')) vibrar(m.k === 'frase' ? 60 : 30, m.k === 'frase' ? 'exito' : 'medio'); return; }
   if (m.type === 'admin' && m.action === 'reload') { setTimeout(() => location.reload(), 300 + Math.random() * 1500); return; }
@@ -364,6 +398,7 @@ function setWaitTexts(st) {
   }[s] || 'Configura el modo de juego en la pantalla principal';
   $('wait-title').textContent = title;
   verReacciones(st);
+  verVotar(st);
   $('wait-state').textContent = s === 'sing' ? 'Escuchando…' : 'Esperando…';
 }
 

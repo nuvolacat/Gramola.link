@@ -308,6 +308,10 @@ sub('<head>', '<head>\n<base href="/tv/">\n<title>Gramola</title>\n<meta name="t
     '<style>html,body{margin:0;background:#0e0f0f;overflow:hidden;cursor:none}</style>\n'
     '<script src="/vendor/qrcode.js"></script>\n<script src="/tv/gramola-bridge.js?v=' + VERSION + '"></script>', name='head')
 
+# --- 26-nov-2026: calibración automática: el móvil junto a la tele oye los pitidos y mide el retraso solo
+sub("'Escuchando… canta «pa» con cada pitido ('+(cb.beat+1)+' de 8).'", "'Escuchando… el móvil oye cada pitido ('+(cb.beat+1)+' de 8).'", name='calibración automática (escuchando)')
+sub("'Sonarán 8 pitidos. Canta «pa» con cada uno, con el móvil cerca de la boca.'", "'Sonarán 8 pitidos. Deja el móvil junto al altavoz de la tele y mide el retraso solo (o di «pa» con cada pitido).'", name='calibración automática (instrucciones)')
+
 # --- revisión del 03-nov-2026: récords comprobados en el servidor y casos límite de Pásalo/Preparar/Resultados
 # Cada fila de resultados lleva el id del jugador (el servidor solo guarda récords de jugadores de la sala) y la
 # precisión no es NaN en una canción sin ranuras
