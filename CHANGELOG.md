@@ -2,6 +2,9 @@
 
 Versiones con el esquema `1.AA.MMDD.HHMM` (fecha y hora del despliegue).
 
+## 1.26.1126.1344
+- Reacciones: en el iPhone (WebKit) la rejilla se salía por la derecha y las casillas pisaban «Más opciones»: las columnas crecían con el tamaño propio de los dibujos. Ahora son 4 columnas iguales (`minmax(0, 1fr)`) y casillas de altura fija (13vw, máx. 60 px). Comprobado con WebKit en 440×956 y 375×667.
+
 ## 1.26.1126.1338
 - **Transiciones en el micro**: al cambiar de pantalla, sus elementos suben escalonados (al volver atrás, bajan); «Más opciones» se despliega en cascada y los botones se hunden un poco al pulsarlos. No afecta a la pantalla de cantar (girada) ni a la cámara, y se desactivan si el móvil pide reducir el movimiento.
 - **12 reacciones en filas de 4** (antes 6 en una fila que no cabía): se suman micro, notas, cien, enamorado, manos arriba y rock (Noto Emoji, Apache 2.0). Casillas algo más bajas para que «Esperando» quepa entero en un iPhone pequeño.
