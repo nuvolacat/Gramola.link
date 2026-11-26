@@ -11,7 +11,7 @@
 La tele es el escenario (**funciona en el navegador**) y cada móvil es un micrófono:
 escaneas el QR, eliges tu color y cantas. Gramola escucha el tono de cada voz y puntúa lo afinado que vas.
 
-![Versión](https://img.shields.io/badge/versi%C3%B3n-1.26.1126.1331-ec3013)
+![Versión](https://img.shields.io/badge/versi%C3%B3n-1.26.1126.1335-ec3013)
 ![Navegador](https://img.shields.io/badge/navegador-Edge%20%C2%B7%20Chrome%20%C2%B7%20Safari-1f6feb)
 ![PWA](https://img.shields.io/badge/micro-web%20%2B%20PWA-ec3013)
 ![Node.js 22+](https://img.shields.io/badge/Node.js-22%2B-5fa04e?logo=nodedotjs&logoColor=white)
@@ -51,7 +51,7 @@ escaneas el QR, eliges tu color y cantas. Gramola escucha el tono de cada voz y 
 
 1. Enciende Gramola en la tele. Tras la intro sale la **sala**: un código de 4 letras (tipo «MOKA») y su QR.
 2. Cada uno escanea el QR, pone su nombre y **elige su color** (8 colores, uno por persona). El móvil se convierte en un micro de su color.
-3. Con el mando (o con los botones del móvil) se elige modo, canción y dificultad de cada cantante.
+3. Con el mando se elige modo, canción y dificultad de cada cantante.
 4. Las notas pasan por la línea roja: tu voz se dibuja con tu color y las notas se rellenan cuando aciertas. Las doradas valen doble.
 5. Al final: puntuación sobre 10.000, precisión, notas doradas, racha, mejor frase y tu **rango**
    (*Cantante de ducha, Aficionado, Promesa, Estrella, Leyenda, Mito*). Los récords se guardan.

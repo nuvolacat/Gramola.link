@@ -714,7 +714,9 @@ wss.on('connection', (ws, req) => {
         if (room.sing) try { room.sing.sample(player.id, n, v, lat); } catch (e) { console.error('puntuacion:', e.message); }
         return;
       }
-      if (m.type === 'input') return toHost(room, { type: 'input', p: player.id, key: clean(m.key, 8) });
+      // (el móvil ya no hace de mando: la tele solo se maneja con su mando, el teclado o un mando de consola, para que nadie
+      //  pueda mover la tele de otro ni pulsar algo sin querer; si llega un «input» de un móvil, se ignora)
+      if (m.type === 'input') return;
       // Voto del público a un cantante (1 a 5 estrellas), a la tele; el que no canta puede cambiar su voto
       if (m.type === 'voto') {
         const v = Math.round(Number(m.v)), para = Math.round(Number(m.para));

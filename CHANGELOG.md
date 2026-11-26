@@ -2,6 +2,9 @@
 
 Versiones con el esquema `1.AA.MMDD.HHMM` (fecha y hora del despliegue).
 
+## 1.26.1126.1335
+- **El móvil ya no hace de mando de la tele**: fuera «Usar el móvil como mando» y su cruceta en «Esperando». Así nadie puede mover la tele de otro ni pulsar algo sin querer. El servidor ignora los `input` que lleguen de un móvil; la tele se maneja con su mando, el teclado o un mando de consola.
+
 ## 1.26.1126.1331
 - La política de privacidad vive en la web (variable `WEB_HOST`): desde la tele y el micro, `/privacidad` redirige con un 301 a la de la web, así que el enlace de la app ya publicada sigue valiendo.
 

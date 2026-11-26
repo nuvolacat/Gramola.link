@@ -44,7 +44,7 @@ function isApp() {
 // ---------------------------------------------------------------- ajustes (cada función se puede desactivar; por defecto, todo activado)
 const puedeVibrar = nativo || 'vibrate' in navigator;
 const AJ = [
-  { k: 'vibBotones', t: 'Vibrar al tocar', d: 'Un toque suave al pulsar el mando, leer el QR o hacer la foto.', si: puedeVibrar },
+  { k: 'vibBotones', t: 'Vibrar al tocar', d: 'Un toque suave al pulsar los botones, leer el QR o hacer la foto.', si: puedeVibrar },
   { k: 'vibCantar', t: 'Vibrar al acertar', d: 'Cuando cantas bien una nota dorada o te sale una frase perfecta.', si: puedeVibrar },
   { k: 'pantalla', t: 'Pantalla siempre encendida', d: 'Si la desactivas y el móvil se bloquea, el micro deja de oírte.', si: true },
   { k: 'brillo', t: 'Bajar el brillo al cantar', d: 'La pantalla se oscurece durante la canción para ahorrar batería y vuelve al acabar.', si: nativo },
@@ -536,16 +536,6 @@ function setMicImage(slot) {
 
 // «Más opciones» en «Esperando»
 $('b-mas').onclick = () => { const abrir = $('mas').hidden; $('mas').hidden = !abrir; $('b-mas').setAttribute('aria-expanded', String(abrir)); };
-
-// ---------------------------------------------------------------- mando
-$('b-pad').onclick = () => {
-  const pad = $('pad');
-  pad.hidden = !pad.hidden;
-  $('b-pad').textContent = pad.hidden ? 'Usar el móvil como mando' : 'Ocultar el mando';
-};
-document.querySelectorAll('.pad button').forEach(b => {
-  b.addEventListener('click', () => { net.send({ type: 'input', key: b.dataset.k }); toque(10); });
-});
 
 // ---------------------------------------------------------------- reconexión, sala cerrada
 $('b-retry').onclick = () => { net.retry = 0; net.connect(); };
