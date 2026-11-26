@@ -2,7 +2,7 @@
 import { Net } from '/js/net.js';
 import { PitchTracker, midiName } from '/js/pitch.js?v=1793577586';
 import { keepAwake as awake, letSleep, wakeSupported } from '/js/wake.js';
-import { nativo, plugin as nat, microHost, vibrar, alAbrirEnlace, compartirImagen } from '/js/nativo.js';
+import { nativo, plugin as nat, microHost, vibrar, alAbrirEnlace, urlDeArranque, compartirImagen } from '/js/nativo.js';
 import * as H from '/m/historial.js';
 import { dibujar, ESTILOS, valoracion } from '/m/compartir.js';
 import { crearCalentamiento } from '/m/calentar.js';
@@ -563,6 +563,8 @@ document.addEventListener('visibilitychange', () => {
 
 // Vuelta tras recargar: si ya estaba en una sala, entra directamente con su color
 (async () => {
+  // App nativa abierta desde el QR de la tele: manda la sala del enlace (no se vuelve a la anterior)
+  if (nativo && parseRoom(await urlDeArranque())) return;
   const c = initial;
   const tok = c && LS.get('g-token-' + c);
   const recent = Date.now() - (+LS.get('g-when') || 0) < 3 * 3600 * 1000;
@@ -873,7 +875,7 @@ $('b-res-back').onclick = () => goBack();
 $('b-aj-back').onclick = () => goBack();
 
 // App nativa: el QR de la tele (o un enlace de sala) abre la app directamente en esa sala
-alAbrirEnlace(url => { const c = parseRoom(url); if (c) roomFound(c); });
+alAbrirEnlace(url => { const c = parseRoom(url); if (c) { autoVuelta = false; roomFound(c); } });
 
 // ---------------------------------------------------------------- giro: en horizontal, el micro se dibuja como en vertical
 (function () {

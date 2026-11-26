@@ -4,8 +4,10 @@
 const C = window.Capacitor;
 export const nativo = !!(C && C.isNativePlatform && C.isNativePlatform());
 const cfg = window.GRAMOLA || {};
-export const plugin = nativo && C.registerPlugin ? C.registerPlugin('GramolaNativo') : null;
-const appPlugin = nativo && C.registerPlugin ? C.registerPlugin('App') : null;
+// Los complementos nativos están en Capacitor.Plugins (registerPlugin solo existe al empaquetar con npm)
+const complemento = n => (nativo && ((C.Plugins && C.Plugins[n]) || (C.registerPlugin && C.registerPlugin(n)))) || null;
+export const plugin = complemento('GramolaNativo');
+const appPlugin = complemento('App');
 
 // Servidor de las salas (en la web, el mismo de la página)
 export const servidor = () => new URL(cfg.servidor || location.origin);
@@ -19,16 +21,31 @@ export function vibrar(ms, tipo) {
 }
 
 // Enlaces del QR de la tele abiertos con la app (…/?s=CODE): al arrancar y con la app ya abierta
+// (se pregunta con la página ya cargada y con reintentos: nada más arrancar, Android aún no tiene el enlace y da vacío)
+let arranque = null;
+export function urlDeArranque() {
+  if (!appPlugin) return Promise.resolve('');
+  if (!arranque) arranque = (async () => {
+    if (document.readyState !== 'complete') await new Promise(ok => addEventListener('load', ok, { once: true }));
+    for (let i = 0; i < 4; i++) {
+      const r = await appPlugin.getLaunchUrl().catch(() => null);
+      if (r && r.url) return r.url;
+      await new Promise(ok => setTimeout(ok, 150));
+    }
+    return '';
+  })();
+  return arranque;
+}
 export function alAbrirEnlace(cb) {
   if (!appPlugin) return;
   appPlugin.addListener('appUrlOpen', e => cb(e && e.url)).catch(() => {});
-  appPlugin.getLaunchUrl().then(r => r && r.url && cb(r.url)).catch(() => {});
+  urlDeArranque().then(u => u && cb(u));
 }
 
 // Compartir una imagen (el resultado): en la app, la hoja de compartir del sistema; en el navegador, la del navegador
 // si sabe compartir ficheros y, si no, se descarga
-const fsPlugin = nativo && C.registerPlugin ? C.registerPlugin('Filesystem') : null;
-const sharePlugin = nativo && C.registerPlugin ? C.registerPlugin('Share') : null;
+const fsPlugin = complemento('Filesystem');
+const sharePlugin = complemento('Share');
 export async function compartirImagen(canvas, texto, nombre = 'gramola.png') {
   if (sharePlugin && fsPlugin) {
     const datos = canvas.toDataURL('image/png').split(',')[1];
