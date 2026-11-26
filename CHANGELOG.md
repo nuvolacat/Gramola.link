@@ -2,6 +2,10 @@
 
 Versiones con el esquema `1.AA.MMDD.HHMM` (fecha y hora del despliegue).
 
+## 1.26.1126.1127
+- **La tele tiene vista previa en redes**: título «Gramola · Karaoke en tu tele», descripción e imagen 1200×630 («Hasta 8 cantantes. Cada móvil, un micro.», con los ocho micros) para WhatsApp, Facebook, X y demás. La dirección la pone el servidor; la imagen nombra el dominio y por eso vive fuera del repo (`deploy/privado/`, sin versionar): el despliegue la copia a `web/privado/` y protege esa carpeta del `--delete`.
+- Diseño: maquetas de la imagen para compartir el resultado desde el micro (`diseno/app-micro/compartir`: póster, entrada, micro y marcador; el jugador elegirá).
+
 ## 1.26.1126.1117
 - **Ajustes en el micro**: botón «Ajustes» en «Escanea el QR» y en «Esperando». Cada función se puede desactivar (por defecto, todo activado; se guarda en el móvil): vibrar al tocar, vibrar al acertar, pantalla siempre encendida, usar siempre el micro del móvil (desactivado, se usa el que dé el sistema, p. ej. un micro externo) y, en la app nativa, bajar el brillo al cantar y avisar con poca batería o modo ahorro.
 - **Vibrar al acertar**: al cerrar una nota dorada bien cantada o una frase «Perfecto», la tele manda `buzz` y el servidor lo reenvía solo al móvil de ese cantante (ver PROTOCOLO).

@@ -6,6 +6,8 @@ node_modules/
 !.env.example
 # Ficheros locales con datos reales de despliegue (no versionar)
 deploy/deploy.env
+# Recursos que nombran el dominio (imagen para redes de la tele…): se despliegan aparte, nunca en el repo
+deploy/privado/
 docs/PRIVADO.local.md
 # Canciones: nunca en el repo (tienen derechos); se suben al servidor aparte
 /web/songs/

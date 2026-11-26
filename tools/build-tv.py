@@ -296,6 +296,15 @@ sub("let l=SONGS.slice();", "let l=SONGS.filter(x=>x.id);", name='sin relleno en
 # --- página: título, iconos, rutas y el puente antes del runtime del diseño
 sub('<head>', '<head>\n<base href="/tv/">\n<title>Gramola</title>\n<meta name="theme-color" content="#ec3013">\n'
     '<link rel="icon" href="/assets/iconos/favicon-32.png" sizes="32x32">\n<link rel="apple-touch-icon" href="/assets/iconos/favicon-180.png">\n'
+    # Vista previa en redes (la dirección la pone el servidor en %%ORIGEN%%; la imagen está en web/privado, fuera del repo)
+    '<meta name="description" content="Karaoke en casa: la tele es el escenario y cada móvil es un micro. Hasta 8 cantantes.">\n'
+    '<meta property="og:type" content="website">\n<meta property="og:site_name" content="Gramola">\n<meta property="og:locale" content="es_ES">\n'
+    '<meta property="og:title" content="Gramola · Karaoke en tu tele">\n'
+    '<meta property="og:description" content="Hasta 8 cantantes. Cada móvil, un micro.">\n'
+    '<meta property="og:url" content="%%ORIGEN%%/">\n<meta property="og:image" content="%%ORIGEN%%/privado/og-tele.png?v=1">\n'
+    '<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n'
+    '<meta property="og:image:alt" content="Gramola: hasta 8 cantantes, cada móvil un micro">\n'
+    '<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:image" content="%%ORIGEN%%/privado/og-tele.png?v=1">\n'
     '<style>html,body{margin:0;background:#0e0f0f;overflow:hidden;cursor:none}</style>\n'
     '<script src="/vendor/qrcode.js"></script>\n<script src="/tv/gramola-bridge.js?v=' + VERSION + '"></script>', name='head')
 

@@ -29,7 +29,9 @@ if [ "${DEPLOY_FORCE:-0}" != 1 ]; then
 fi
 
 rsync -az -e "$SSH" --delete --exclude node_modules --exclude data server/ "$DEPLOY_HOST:$DEPLOY_DIR/server.new/"
-rsync -az -e "$SSH" --delete --exclude songs web/ "$DEPLOY_HOST:$DEPLOY_DIR/web/"
+rsync -az -e "$SSH" --delete --exclude songs --filter='P /privado/' web/ "$DEPLOY_HOST:$DEPLOY_DIR/web/"
+# Recursos privados (fuera del repo porque nombran el dominio, p. ej. la imagen para redes de la tele): web/privado/
+if [ -d deploy/privado/web ]; then rsync -az -e "$SSH" deploy/privado/web/ "$DEPLOY_HOST:$DEPLOY_DIR/web/"; fi
 # Herramientas de canciones (el admin las usa para el Megamix y el volumen; necesitan python3 y ffmpeg en el servidor)
 rsync -az -e "$SSH" --delete --exclude __pycache__ tools/ "$DEPLOY_HOST:$DEPLOY_DIR/tools/"
 # Las canciones NO se despliegan desde aquí (tienen derechos y se suben aparte con tools/subir-canciones.sh)
