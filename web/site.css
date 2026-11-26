@@ -53,15 +53,19 @@ section.block h2 { font-weight: 300; font-size: clamp(36px, 4.6vw, 72px); letter
 .cols3 p { margin: 0; color: var(--n7); }
 
 /* Modos: tarjetas como el menú de la tele */
-.modes { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border: 2px solid var(--ink); background: var(--paper); }
-.modes > div { padding: 18px 16px 20px; border-right: 2px solid var(--ink); min-height: 190px; display: flex; flex-direction: column; justify-content: space-between; }
-.modes > div:last-child { border-right: 0; }
-.modes > div:first-child { background: var(--red); color: #fff; }
-.modes b { font-size: 22px; line-height: 1.1; display: block; }
-.modes span { font-size: 15px; }
-.modes .n { font-weight: 800; font-size: 14px; }
 
 /* Galería */
+/* Modos: cada uno con su captura de la tele */
+.modos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.modos figure { margin: 0; border: 2px solid var(--ink); background: var(--paper); display: flex; flex-direction: column; }
+.modos img { width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; display: block; border-bottom: 2px solid var(--ink); }
+.modos figcaption { flex: 1; padding: 14px 16px 18px; display: grid; grid-template-columns: auto 1fr; column-gap: 10px; align-content: start; align-items: baseline; }
+.modos figcaption .n { font-weight: 800; font-size: 14px; }
+.modos figcaption b { font-size: 22px; line-height: 1.1; }
+.modos figcaption span:not(.n), .modos figcaption small { grid-column: 2; font-size: 15px; }
+.modos figcaption small { margin-top: 6px; opacity: .75; font-size: 14px; line-height: 1.4; }
+.modos figure.on figcaption { background: var(--red); color: #fff; }
+.modos figure.on figcaption small { opacity: .9; }
 .gallery { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .gallery figure { margin: 0; }
 .gallery img { box-shadow: 0 10px 24px rgba(45, 43, 43, .18); }
@@ -100,11 +104,8 @@ footer.foot .repo:hover { color: var(--red); }
   .install .qr { display: none; }
   .only-mobile { display: block; }
   .cols3, .gallery { grid-template-columns: 1fr; }
+  .modos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .cols3 > div { padding: 18px 0 18px; }
-  .modes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .modes > div { border-bottom: 2px solid var(--ink); min-height: 130px; }
-  .modes > div:nth-child(2n) { border-right: 0; }
-  .modes > div:nth-last-child(-n+2) { border-bottom: 0; }
   .top nav { display: none; }
   .cols3 .phone { width: 62%; }
 }
@@ -129,9 +130,9 @@ h2 b.red { font-weight: 800; color: var(--red); }
 .tienda[aria-disabled="true"] { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); cursor: default; }
 .tienda[aria-disabled="true"] small { color: var(--red7); opacity: 1; }
 a.tienda:not([aria-disabled]):hover { background: var(--red); }
-.app-fotos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.app-fotos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
 .app-fotos .phone { width: 100%; aspect-ratio: 390 / 844; object-fit: cover; box-shadow: 0 10px 24px rgba(45, 43, 43, .18); }
-.app-fotos .phone:nth-child(2) { margin-top: 40px; }
+.app-fotos .phone:nth-child(even) { margin-top: 40px; }
 footer.foot .legal-links { display: flex; gap: 22px; margin-left: auto; margin-right: 22px; }
 footer.foot .legal-links a { text-decoration: none; }
 footer.foot .legal-links a:hover { color: var(--red); }
@@ -140,10 +141,12 @@ a:focus-visible, summary:focus-visible { outline: 4px solid var(--red); outline-
 
 @media (max-width: 960px) {
   .app { grid-template-columns: 1fr; }
-  .app-fotos .phone:nth-child(2) { margin-top: 0; }
+  .app-fotos .phone:nth-child(even) { margin-top: 0; }
+  .app-fotos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 560px) {
   .funciones { grid-template-columns: 1fr; }
+  .modos { grid-template-columns: 1fr; }
   .top .btn.cantar { font-size: 15px; padding: 10px 14px; gap: 12px; }
   .top .logo { height: 28px; }
   footer.foot { flex-wrap: wrap; }

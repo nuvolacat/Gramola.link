@@ -2,6 +2,9 @@
 
 Versiones con el esquema `1.AA.MMDD.HHMM` (fecha y hora del despliegue).
 
+## 1.26.1126.1718
+- **Web: capturas reales de todo.** La tele, capturada de la versión actual con el catálogo real y sus carátulas: canto (con notas doradas), bienvenida, sala, menú, canciones, preparar partida y resultados. «Modos de juego» pasa a tarjetas con la captura de cada modo (Cantar, Duelo, Megamix, Pásalo, Jukebox y Récords). En la sección de la app, capturas nuevas de compartir e historial con canciones reales, la de votar y animar, y la de elegir color de la misma sala.
+
 ## 1.26.1126.1647
 - **Web principal y juego en su propio dominio** (variable `SING_HOST`): la raíz del dominio principal pasa a ser la web de presentación, con el botón «¡A Cantar!» arriba que lleva al juego, y la tele se abre en la raíz de `SING_HOST`. Las teles que llegan con `?tv=…` (a la portada o a la dirección antigua `/app`) van al juego conservando la query, así que la app de LG sigue funcionando sin tocarla. El QR y el micro siguen en `micro.` del dominio principal.
 - La web, al día: sección de la app **Gramola Micro** con sus funciones (reacciones, votos, historial y logros, compartir, calentamiento, escáner) y capturas nuevas, insignias de App Store y Google Play («Próximamente» hasta que se publique), preguntas frecuentes y pie con Soporte y Privacidad.
