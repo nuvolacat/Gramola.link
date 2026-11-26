@@ -2,6 +2,9 @@
 
 Versiones con el esquema `1.AA.MMDD.HHMM` (fecha y hora del despliegue).
 
+## 1.26.1126.1331
+- La política de privacidad vive en la web (variable `WEB_HOST`): desde la tele y el micro, `/privacidad` redirige con un 301 a la de la web, así que el enlace de la app ya publicada sigue valiendo.
+
 ## 1.26.1126.1318
 - **Política de privacidad** pública en `/privacidad/` (la piden App Store y Google Play): sin cuentas, la voz no se graba (solo nota y volumen), foto solo en memoria mientras dura la sala, récords con el nombre de jugador, datos locales del móvil, proveedores y derechos. Como lleva los datos del titular, la página vive en `deploy/privado/web` (fuera del repo).
 - Micro: enlace «Política de privacidad» al pie de los ajustes (en la app se abre en el navegador del sistema).

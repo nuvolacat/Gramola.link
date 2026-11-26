@@ -20,6 +20,8 @@ const SONGS_DIR = process.env.SONGS_DIR || path.join(WEB_DIR, 'songs');
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const SERVE_STATIC = process.env.SERVE_STATIC !== '0';
 const TV_HOST = String(process.env.TV_HOST || '').toLowerCase();
+// Dominio de la web (portada y páginas legales): la política de privacidad solo se sirve ahí; desde la tele y el micro, 301
+const WEB_HOST = String(process.env.WEB_HOST || '').toLowerCase();
 // App nativa del micro (opcional; sin estas variables todo sigue como la web):
 // APP_IOS = «EQUIPO.identificador» (enlaces universales), APP_ANDROID = paquete, APP_ANDROID_SHA256 = huellas de firma
 // separadas por comas (App Links), TIENDA_IOS / TIENDA_ANDROID = enlaces a las fichas (la página del micro los ofrece
@@ -398,6 +400,10 @@ async function handleHttp(req, res) {
   // Dominio propio de la tele (TV_HOST): la tele se abre en su raíz; «www.» va al dominio sin www;
   // y la dirección antigua (/app en la web) lleva allí conservando ?tv=… (el editor del admin sigue usando /app)
   const hostName = host.toLowerCase().replace(/:\d+$/, '');
+  if (WEB_HOST && hostName !== WEB_HOST && (req.method === 'GET' || req.method === 'HEAD') && /^\/privacidad(\/(index\.html)?)?$/.test(url.pathname)) {
+    res.writeHead(301, { location: 'https://' + WEB_HOST + '/privacidad/' });
+    return res.end();
+  }
   if (TV_HOST && (req.method === 'GET' || req.method === 'HEAD')) {
     if (hostName === 'www.' + TV_HOST) {
       res.writeHead(301, { location: 'https://' + TV_HOST + url.pathname + url.search });
