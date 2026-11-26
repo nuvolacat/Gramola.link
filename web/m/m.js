@@ -2,7 +2,9 @@
 import { Net } from '/js/net.js';
 import { PitchTracker, midiName } from '/js/pitch.js?v=1793577586';
 import { keepAwake as awake, letSleep, wakeSupported } from '/js/wake.js';
-import { nativo, plugin as nat, microHost, vibrar, alAbrirEnlace } from '/js/nativo.js';
+import { nativo, plugin as nat, microHost, vibrar, alAbrirEnlace, compartirImagen } from '/js/nativo.js';
+import * as H from '/m/historial.js';
+import { dibujar, ESTILOS, valoracion } from '/m/compartir.js';
 
 const $ = id => document.getElementById(id);
 const LS = {
@@ -46,6 +48,7 @@ const AJ = [
   { k: 'pantalla', t: 'Pantalla siempre encendida', d: 'Si la desactivas y el móvil se bloquea, el micro deja de oírte.', si: true },
   { k: 'brillo', t: 'Bajar el brillo al cantar', d: 'La pantalla se oscurece durante la canción para ahorrar batería y vuelve al acabar.', si: nativo },
   { k: 'bateria', t: 'Avisar con poca batería', d: 'Te avisa si queda poca batería o si el modo de ahorro está activado: puede frenar el micro.', si: nativo },
+  { k: 'historial', t: 'Guardar tu historial', d: 'Tus resultados y logros, solo en este móvil. Desactivado, puedes compartir el último pero no se guarda.', si: true },
   { k: 'microMovil', t: 'Usar siempre el micro del móvil', d: 'Aunque haya auriculares o AirPods conectados. Desactívalo para cantar con un micro externo.', si: true },
 ];
 let ajustes = {};
@@ -109,6 +112,86 @@ async function revisarBateria() {
     tip.hidden = !t;
   } catch { tip.hidden = true; }
 }
+
+// Aviso arriba (administración, logros…)
+function aviso(t, ms = 6000) {
+  let el = document.getElementById('g-aviso');
+  if (!el) { el = document.createElement('div'); el.id = 'g-aviso'; el.className = 'aviso'; document.body.appendChild(el); }
+  el.textContent = String(t).slice(0, 140);
+  el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), ms);
+}
+
+// ---------------------------------------------------------------- resultado, historial y compartir
+const miles = n => String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+let ultimo = null, resActual = null, resCanvas = null, resVuelta = 's-wait', histVuelta = 's-scan';
+function nuevoResultado(r) {
+  r = { ...r, nombre: me ? me.name : '', color: me ? me.color : COLORS[0], slot: me ? me.slot : 1 };
+  ultimo = r;
+  if (aj('historial')) {
+    H.guardar(r);
+    H.revisarLogros().forEach((g, i) => setTimeout(() => { aviso('★ Logro conseguido: ' + g.t); if (aj('vibCantar')) vibrar(60, 'exito'); }, 600 + i * 6500));
+  }
+  $('res-pts').textContent = miles(r.puntos);
+  $('res-txt').textContent = valoracion(r.puntos) + (r.total > 1 ? ` · ${r.puesto}.º de ${r.total}` : '');
+  $('res-card').hidden = false;
+}
+$('res-card').onclick = () => ultimo && abrirResultado(ultimo);
+async function pintarResultado() {
+  const r = resActual; if (!r) return;
+  const estilo = LS.get('g-estilo') || 'A';
+  document.querySelectorAll('#r-estilos button').forEach(b => b.classList.toggle('sel', b.dataset.e === estilo));
+  $('err-res').textContent = '';
+  try {
+    resCanvas = await dibujar(estilo, r, { foto: LS.get('g-photo'), micro: `/assets/micro/j${r.slot || 1}.webp`, nuvola: '/assets/nuvola/tinta.png' });
+    if (resActual === r) $('r-img').src = resCanvas.toDataURL('image/jpeg', 0.86);
+  } catch { $('err-res').textContent = 'No se ha podido preparar la imagen.'; }
+}
+function abrirResultado(r) {
+  if (screen !== 's-resultado') resVuelta = screen;
+  resActual = r; resCanvas = null; $('r-img').removeAttribute('src');
+  const d = new Date(r.fecha || Date.now());
+  $('res-fecha').textContent = d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) + ' · ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  show('s-resultado');
+  pintarResultado();
+}
+$('r-estilos').innerHTML = ESTILOS.map(e => `<button data-e="${e.id}">${e.t}</button>`).join('');
+document.querySelectorAll('#r-estilos button').forEach(b => b.onclick = () => { LS.set('g-estilo', b.dataset.e); toque(10); pintarResultado(); });
+$('b-compartir').onclick = async () => {
+  if (!resCanvas || !resActual) return;
+  $('b-compartir').disabled = true;
+  try {
+    const r = resActual;
+    await compartirImagen(resCanvas, `¡${miles(r.puntos)} puntos cantando «${r.titulo}» en Gramola!`, 'gramola-' + (r.fecha || Date.now()) + '.png');
+  } catch { $('err-res').textContent = 'No se ha podido compartir.'; }
+  $('b-compartir').disabled = false;
+};
+function pintarHistorial() {
+  const lista = H.leer(), st = H.estadisticas(lista), hechos = H.logrosConseguidos();
+  $('h-stats').innerHTML = '';
+  [[st.canciones, 'canciones'], [miles(st.mejor), 'mejor puntuación'], [st.oro, 'notas doradas'], [st.racha, 'mejor racha']].forEach(([v, t]) => {
+    const d = document.createElement('div'); const b = document.createElement('b'); b.textContent = v; const sp = document.createElement('span'); sp.textContent = t; d.append(b, sp); $('h-stats').append(d);
+  });
+  $('h-logros').innerHTML = '';
+  H.LOGROS.forEach(g => {
+    const d = document.createElement('div'); if (hechos[g.id]) d.className = 'ok';
+    const b = document.createElement('b'); b.textContent = g.t; const sp = document.createElement('span'); sp.textContent = g.d; d.append(b, sp); $('h-logros').append(d);
+  });
+  $('h-lista').innerHTML = '';
+  lista.forEach(r => {
+    const b = document.createElement('button');
+    const cv = document.createElement('span'); cv.className = 'cv'; if (r.portada) cv.style.backgroundImage = `url("${r.portada}")`;
+    const tx = document.createElement('span'); tx.className = 'tx';
+    const t1 = document.createElement('b'); t1.textContent = r.titulo || 'Canción';
+    const t2 = document.createElement('span'); t2.textContent = [r.artista, new Date(r.fecha || 0).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })].filter(Boolean).join(' · ');
+    tx.append(t1, t2);
+    const pt = document.createElement('span'); pt.className = 'pt'; pt.textContent = miles(r.puntos);
+    b.append(cv, tx, pt); b.onclick = () => abrirResultado(r); $('h-lista').append(b);
+  });
+  $('h-vacio').hidden = lista.length > 0;
+  $('b-hist-borrar').hidden = lista.length === 0;
+}
+document.querySelectorAll('.hist-open').forEach(b => b.addEventListener('click', () => { histVuelta = b.dataset.hist || screen; pintarHistorial(); show('s-historial'); }));
+$('b-hist-borrar').onclick = () => { if (confirm('¿Borrar todo tu historial y tus logros de este móvil?')) { H.borrar(); pintarHistorial(); } };
 
 // Volver atrás: los botones «← Volver» y el gesto de volver del móvil (historial) hacen lo mismo
 const BACK = {};
@@ -229,13 +312,8 @@ function onMessage(m) {
   if (m.type === 'buzz') { if (aj('vibCantar')) vibrar(m.k === 'frase' ? 60 : 30, m.k === 'frase' ? 'exito' : 'medio'); return; }
   if (m.type === 'admin' && m.action === 'reload') { setTimeout(() => location.reload(), 300 + Math.random() * 1500); return; }
   // Aviso desde la administración: una franja arriba unos segundos
-  if (m.type === 'admin' && m.action === 'toast' && m.text) {
-    let el = document.getElementById('g-aviso');
-    if (!el) { el = document.createElement('div'); el.id = 'g-aviso'; el.className = 'aviso'; document.body.appendChild(el); }
-    el.textContent = String(m.text).slice(0, 140);
-    el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 6000);
-    return;
-  }
+  if (m.type === 'admin' && m.action === 'toast' && m.text) { aviso(m.text); return; }
+  if (m.type === 'resultado' && m.r) { nuevoResultado(m.r); return; }
   if (m.type === 'kicked' || m.type === 'closed' || m.type === 'replaced') {
     joined = false;
     hello = null;
@@ -670,6 +748,10 @@ document.querySelectorAll('.g-host').forEach(e => (e.textContent = microHost()))
 // Ajuste de pantalla al arrancar (la app nativa la mantiene encendida desde que se abre, salvo que se desactive)
 if (nat && !aj('pantalla')) nat.pantalla({ encendida: false }).catch(() => {});
 BACK['s-ajustes'] = () => show(ajVuelta);
+BACK['s-historial'] = () => show(histVuelta);
+BACK['s-resultado'] = () => show(resVuelta);
+$('b-hist-back').onclick = () => goBack();
+$('b-res-back').onclick = () => goBack();
 $('b-aj-back').onclick = () => goBack();
 
 // App nativa: el QR de la tele (o un enlace de sala) abre la app directamente en esa sala

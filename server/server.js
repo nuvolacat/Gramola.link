@@ -732,6 +732,21 @@ wss.on('connection', (ws, req) => {
         if (p && (m.k === 'oro' || m.k === 'frase')) send(p.ws, { type: 'buzz', k: m.k });
         return;
       }
+      // Resultado de la canción para el móvil de un cantante (historial, logros, imagen para compartir)
+      if (m.type === 'resultado') {
+        const p = room.players.get(m.p), r = m.r;
+        if (!p || !r || typeof r !== 'object' || Array.isArray(r)) return;
+        const num = (x, max) => Math.max(0, Math.min(max, Math.round(Number(x) || 0)));
+        const txt = (x, n) => clean(String(x == null ? '' : x), n);
+        const portada = typeof r.portada === 'string' && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(r.portada) && r.portada.length < 60000 ? r.portada : null;
+        send(p.ws, { type: 'resultado', r: {
+          puesto: num(r.puesto, 8), total: num(r.total, 8), puntos: num(r.puntos, 10000), precision: num(r.precision, 100),
+          oro: txt(r.oro, 9), racha: num(r.racha, 9999), mejorFrase: num(r.mejorFrase, 100), modo: txt(r.modo, 12),
+          titulo: txt(r.titulo, 80), artista: txt(r.artista, 80), portada, fecha: Date.now(), sala: room.code,
+          otros: Array.isArray(r.otros) ? r.otros.slice(0, 8).map(o => ({ nombre: txt(o && o.nombre, 16), color: /^#[0-9a-f]{6}$/i.test(o && o.color) ? o.color : '#9b9797', puntos: num(o && o.puntos, 10000) })) : [],
+        } });
+        return;
+      }
       if (m.type === 'kick') {
         const p = room.players.get(m.p);
         if (p) { send(p.ws, { type: 'kicked' }); p.ws && p.ws.close(); room.players.delete(m.p); }

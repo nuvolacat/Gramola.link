@@ -2,6 +2,11 @@
 
 Versiones con el esquema `1.AA.MMDD.HHMM` (fecha y hora del despliegue).
 
+## 1.26.1126.1134
+- **Tu resultado en el móvil**: al acabar una canción, la tele manda a cada cantante su resultado (`resultado`: puntos, puesto, precisión, notas doradas, racha, mejor frase, carátula pequeña y clasificación). En «Esperando» sale «Tu resultado · Ver y compartir».
+- **Compartir el resultado como imagen** (formato historia 1080×1920) en cuatro estilos a elegir: Póster, Entrada, Micro y Marcador. En la app, con la hoja de compartir del sistema; en el navegador, la suya o se descarga.
+- **Tu historial y logros** (solo en el móvil, sin cuentas): estadísticas (canciones, mejor puntuación, notas doradas, mejor racha), 10 logros con aviso al conseguirlos y la lista de canciones para volver a compartir cualquiera. Ajuste «Guardar tu historial» y botón para borrarlo.
+
 ## 1.26.1126.1127
 - **La tele tiene vista previa en redes**: título «Gramola · Karaoke en tu tele», descripción e imagen 1200×630 («Hasta 8 cantantes. Cada móvil, un micro.», con los ocho micros) para WhatsApp, Facebook, X y demás. La dirección la pone el servidor; la imagen nombra el dominio y por eso vive fuera del repo (`deploy/privado/`, sin versionar): el despliegue la copia a `web/privado/` y protege esa carpeta del `--delete`.
 - Diseño: maquetas de la imagen para compartir el resultado desde el micro (`diseno/app-micro/compartir`: póster, entrada, micro y marcador; el jugador elegirá).

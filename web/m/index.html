@@ -30,7 +30,7 @@
 <meta name="twitter:image" content="%%ORIGEN%%/assets/og/gramola-og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/m/m.css?v=1.26.1126.1127">
+<link rel="stylesheet" href="/m/m.css?v=1.26.1126.1134">
 </head>
 <body>
   <!-- MOV-00 Instalar (desde el navegador) -->
@@ -57,6 +57,7 @@
     <div class="grow"></div>
     <button class="cta" id="b-scan">Escanear <span>→</span></button>
     <button class="ghost wide" id="b-manual">Escribir el código</button>
+    <button class="ghost wide hist-open" data-hist="s-scan">Tu historial</button>
     <footer class="foot"><img src="/assets/nuvola/tinta.png" alt="nuvola"> · <span class="g-host"></span></footer>
   </section>
 
@@ -141,10 +142,12 @@
     <p class="txt" id="wait-text">Deja el móvil a mano: cuando empiece la canción, se convierte en tu micro.</p>
     <div class="grow"></div>
     <p class="tip" id="tip-install" hidden></p>
+    <button class="res-card" id="res-card" hidden><span class="res-k">Tu resultado</span><b id="res-pts">0</b><span id="res-txt"></span><i>Ver y compartir →</i></button>
     <p class="tip warn" id="tip-bat" hidden></p>
     <p class="tip warn" id="tip-awake" hidden>Tu móvil no deja mantener la pantalla encendida. Toca la pantalla de vez en cuando o súbele el tiempo de bloqueo: si se apaga, el micro deja de oírte.</p>
     <button class="ghost" id="b-pad">Usar el móvil como mando</button>
     <button class="ghost wide" id="b-tuner">Probar el micro</button>
+    <button class="ghost wide hist-open" data-hist="s-wait">Tu historial</button>
     <button class="ghost wide aj-open" data-aj="s-wait">Ajustes</button>
     <button class="ghost wide" id="b-leave">Salir de la sala</button>
     <div class="pad" id="pad" hidden>
@@ -181,6 +184,28 @@
     <button class="cta" id="b-tuner-back">Volver <span>←</span></button>
   </section>
 
+  <!-- Tu historial: estadísticas, logros y canciones (solo en este móvil) -->
+  <section id="s-historial" class="screen scroll">
+    <header class="bar"><button class="back" id="b-hist-back" aria-label="Volver">← Volver</button></header>
+    <h2 class="mid">Tu historial</h2>
+    <div class="h-stats" id="h-stats"></div>
+    <p class="lbl">Logros</p>
+    <div class="h-logros" id="h-logros"></div>
+    <p class="lbl">Canciones</p>
+    <div class="h-lista" id="h-lista"></div>
+    <p class="hint" id="h-vacio" hidden>Aún no has cantado. Cuando acabes una canción, tu resultado aparecerá aquí.</p>
+    <button class="ghost wide" id="b-hist-borrar">Borrar el historial</button>
+  </section>
+
+  <!-- Tu resultado: imagen para compartir en cuatro estilos -->
+  <section id="s-resultado" class="screen scroll">
+    <header class="bar"><button class="back" id="b-res-back" aria-label="Volver">← Volver</button><span class="who" id="res-fecha"></span></header>
+    <div class="r-prev"><img id="r-img" alt="Tu resultado"></div>
+    <div class="r-estilos" id="r-estilos"></div>
+    <p class="err" id="err-res"></p>
+    <button class="cta" id="b-compartir">Compartir <span>↗</span></button>
+  </section>
+
   <!-- Ajustes: cada función se puede desactivar (por defecto, todo activado) -->
   <section id="s-ajustes" class="screen">
     <header class="bar"><button class="back" id="b-aj-back" aria-label="Volver">← Volver</button></header>
@@ -214,6 +239,6 @@
     <button class="cta" id="b-other">Unirme a otra sala <span>→</span></button>
   </section>
 
-<script type="module" src="/m/m.js?v=1.26.1126.1127"></script>
+<script type="module" src="/m/m.js?v=1.26.1126.1134"></script>
 </body>
 </html>

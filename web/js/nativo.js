@@ -24,3 +24,25 @@ export function alAbrirEnlace(cb) {
   appPlugin.addListener('appUrlOpen', e => cb(e && e.url)).catch(() => {});
   appPlugin.getLaunchUrl().then(r => r && r.url && cb(r.url)).catch(() => {});
 }
+
+// Compartir una imagen (el resultado): en la app, la hoja de compartir del sistema; en el navegador, la del navegador
+// si sabe compartir ficheros y, si no, se descarga
+const fsPlugin = nativo && C.registerPlugin ? C.registerPlugin('Filesystem') : null;
+const sharePlugin = nativo && C.registerPlugin ? C.registerPlugin('Share') : null;
+export async function compartirImagen(canvas, texto, nombre = 'gramola.png') {
+  if (sharePlugin && fsPlugin) {
+    const datos = canvas.toDataURL('image/png').split(',')[1];
+    const { uri } = await fsPlugin.writeFile({ path: nombre, data: datos, directory: 'CACHE' });
+    try { await sharePlugin.share({ title: 'Gramola', text: texto, files: [uri] }); } catch (e) { if (!/cancel/i.test(String(e && e.message))) throw e; }
+    return 'compartido';
+  }
+  const blob = await new Promise(ok => canvas.toBlob(ok, 'image/png'));
+  const fichero = new File([blob], nombre, { type: 'image/png' });
+  if (navigator.canShare && navigator.canShare({ files: [fichero] })) {
+    try { await navigator.share({ files: [fichero], text: texto }); return 'compartido'; } catch (e) { if (e && e.name === 'AbortError') return 'cancelado'; }
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = nombre; document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  return 'descargado';
+}

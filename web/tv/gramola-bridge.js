@@ -1464,7 +1464,37 @@ window.GR = (() => {
   };
 
   // ------------------------------------------------------------------ récords
+  // Resultado de cada cantante a su móvil (historial, logros y la imagen para compartir). La carátula va en pequeño
+  // dentro del mensaje: el móvil no tiene pase de tele para bajarla
+  G.portadaPeq = url => new Promise(ok => {
+    if (!url) return ok(null);
+    const im = new Image();
+    im.onload = () => {
+      try {
+        const cv = document.createElement('canvas'); cv.width = cv.height = 300;
+        const s = Math.min(im.naturalWidth, im.naturalHeight);
+        cv.getContext('2d').drawImage(im, (im.naturalWidth - s) / 2, (im.naturalHeight - s) / 2, s, s, 0, 0, 300, 300);
+        ok(cv.toDataURL('image/jpeg', 0.78));
+      } catch { ok(null); }
+    };
+    im.onerror = () => ok(null);
+    im.src = url;
+  });
+  G.resultadosMoviles = async (c, rows) => {
+    try {
+      if (!G.net || G.preview || !G.room || c.state.mode === 'jukebox' || c.state.mode === 'party') return;
+      const S = SONGS[c.state.songSel]; if (!S) return;
+      const portada = G.mega ? null : await G.portadaPeq(S.entry && S.entry.cover);
+      const otros = rows.slice(0, 8).map(o => ({ nombre: o.name, color: o.color, puntos: o.score }));
+      rows.forEach((r, i) => {
+        if (r.id == null) return;
+        G.net.send({ type: 'resultado', p: r.id, r: { puesto: i + 1, total: rows.length, puntos: r.score, precision: r.prec, oro: r.gold, racha: r.streak,
+          mejorFrase: r.bestPh, modo: c.state.mode, titulo: G.mega ? 'Megamix' : S.title, artista: G.mega ? '' : S.artist, portada, otros } });
+      });
+    } catch {}
+  };
   G.saveRecord = async (c, rows) => {
+    G.resultadosMoviles(c, rows);
     const S = SONGS[c.state.songSel];
     if (!S || !G.room || G.mega || c.state.mode === 'jukebox' || c.state.mode === 'party') return;
     const sing = c.state.singers;
