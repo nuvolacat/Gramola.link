@@ -2,6 +2,10 @@
 
 Versiones con el esquema `1.AA.MMDD.HHMM` (fecha y hora del despliegue).
 
+## 1.26.1126.1742
+- **Gramola Micro ya está en Google Play.** La insignia de la web pasa a «Disponible en Google Play» con su enlace, y la página del micro en un Android sin la app ofrece instalarla desde Play. La pregunta «¿Tengo que instalar algo?» lo dice (App Store, pronto).
+- Enlaces de la app en Android: se añade la huella del certificado de firma de Google Play a `APP_ANDROID_SHA256`, así que el QR de la tele abre directamente la app instalada desde Play.
+
 ## 1.26.1126.1718
 - **Web: capturas reales de todo.** La tele, capturada de la versión actual con el catálogo real y sus carátulas: canto (con notas doradas), bienvenida, sala, menú, canciones, preparar partida y resultados. «Modos de juego» pasa a tarjetas con la captura de cada modo (Cantar, Duelo, Megamix, Pásalo, Jukebox y Récords). En la sección de la app, capturas nuevas de compartir e historial con canciones reales, la de votar y animar, y la de elegir color de la misma sala.
 
