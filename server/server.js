@@ -19,7 +19,12 @@ const WEB_DIR = process.env.WEB_DIR || path.join(__dirname, '..', 'web');
 const SONGS_DIR = process.env.SONGS_DIR || path.join(WEB_DIR, 'songs');
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const SERVE_STATIC = process.env.SERVE_STATIC !== '0';
+// TV_HOST = dominio principal (la web de Gramola en su raíz); SING_HOST = dominio del juego (la tele en su raíz).
+// Sin SING_HOST, la tele sigue en la raíz de TV_HOST como antes.
 const TV_HOST = String(process.env.TV_HOST || '').toLowerCase();
+const SING_HOST = String(process.env.SING_HOST || '').toLowerCase();
+// Enlace «¡A Cantar!» de la web: el juego (en local, sin dominios, la tele está en /app/)
+const JUEGO_URL = SING_HOST ? 'https://' + SING_HOST + '/' : '/app/';
 // Dominio de la web (portada y páginas legales): la política de privacidad solo se sirve ahí; desde la tele y el micro, 301
 const WEB_HOST = String(process.env.WEB_HOST || '').toLowerCase();
 // App nativa del micro (opcional; sin estas variables todo sigue como la web):
@@ -400,18 +405,37 @@ async function handleHttp(req, res) {
   // Dominio propio de la tele (TV_HOST): la tele se abre en su raíz; «www.» va al dominio sin www;
   // y la dirección antigua (/app en la web) lleva allí conservando ?tv=… (el editor del admin sigue usando /app)
   const hostName = host.toLowerCase().replace(/:\d+$/, '');
-  if (WEB_HOST && hostName !== WEB_HOST && (req.method === 'GET' || req.method === 'HEAD') && /^\/privacidad(\/(index\.html)?)?$/.test(url.pathname)) {
-    res.writeHead(301, { location: 'https://' + WEB_HOST + '/privacidad/' });
+  // Privacidad y soporte se sirven en un solo dominio: con SING_HOST, el principal (TV_HOST); si no, la web (WEB_HOST).
+  // Desde cualquier otro (la web antigua, la tele, el micro), 301 a la misma página allí (las fichas de las tiendas enlazan la antigua)
+  const legalHost = SING_HOST && TV_HOST ? TV_HOST : WEB_HOST;
+  const legal = url.pathname.match(/^\/(privacidad|soporte)(\/(index\.html)?)?$/);
+  if (legalHost && legal && hostName !== legalHost && (req.method === 'GET' || req.method === 'HEAD')) {
+    res.writeHead(301, { location: 'https://' + legalHost + '/' + legal[1] + '/' });
     return res.end();
   }
   if (TV_HOST && (req.method === 'GET' || req.method === 'HEAD')) {
+    const juego = SING_HOST || TV_HOST;
     if (hostName === 'www.' + TV_HOST) {
       res.writeHead(301, { location: 'https://' + TV_HOST + url.pathname + url.search });
       return res.end();
     }
-    if (hostName === TV_HOST && (url.pathname === '/' || url.pathname === '/index.html')) return serveStatic(req, res, '/app/index.html');
-    if (/^\/app(\/(index\.html)?)?$/.test(url.pathname) && !url.searchParams.has('preview') && (hostName === TV_HOST || !/^(admin|micro)\./.test(hostName))) {
-      res.writeHead(301, { location: 'https://' + TV_HOST + '/' + url.search });
+    const raiz = url.pathname === '/' || url.pathname === '/index.html';
+    // El juego: la tele en la raíz de SING_HOST
+    if (hostName === juego && raiz) return serveStatic(req, res, '/app/index.html');
+    // Las teles (app de LG y otras) llegan con ?tv=…: de la portada o de la dirección antigua /app, al juego conservándolo
+    if (SING_HOST && hostName === TV_HOST && raiz && url.searchParams.has('tv')) {
+      res.writeHead(301, { location: 'https://' + SING_HOST + '/' + url.search });
+      return res.end();
+    }
+    if (/^\/app(\/(index\.html)?)?$/.test(url.pathname) && !url.searchParams.has('preview') && (hostName === juego || !/^(admin|micro)\./.test(hostName))) {
+      res.writeHead(301, { location: 'https://' + juego + '/' + url.search });
+      return res.end();
+    }
+    // El dominio de la web antigua (y su www) lleva siempre a la portada (privacidad y soporte ya han ido arriba a su página),
+    // salvo los recursos que aún pidan clientes antiguos
+    if (WEB_HOST && SING_HOST && (hostName === WEB_HOST || hostName === 'www.' + WEB_HOST)
+        && !/^\/(assets|site\.css|favicon\.ico|\.well-known|api|songs|vendor)(\/|$)/.test(url.pathname)) {
+      res.writeHead(301, { location: 'https://' + TV_HOST + '/' });
       return res.end();
     }
   }
@@ -554,9 +578,9 @@ function serveStatic(req, res, pathname) {
     }
     // Páginas: la dirección pública (para las vistas previas en redes) sale de la petición, no va escrita en el código
     if (type.startsWith('text/html')) {
-      const origin = 'https://' + String(req.headers.host || '').replace(/^micro\./, '');
+      const origin = 'https://' + String(req.headers.host || '').replace(/^(micro|sing)\./, '');
       const banner = APP.appleId ? `<meta name="apple-itunes-app" content="app-id=${APP.appleId}">` : '';
-      const body = Buffer.from(fs.readFileSync(file, 'utf8').replaceAll('%%ORIGEN%%', origin)
+      const body = Buffer.from(fs.readFileSync(file, 'utf8').replaceAll('%%ORIGEN%%', origin).replaceAll('%%JUEGO%%', JUEGO_URL)
         .replaceAll('%%TIENDA_IOS%%', APP.tiendaIos).replaceAll('%%TIENDA_ANDROID%%', APP.tiendaAndroid).replaceAll('%%BANNER_IOS%%', banner));
       res.writeHead(200, { ...headers, 'content-length': body.length });
       return res.end(req.method === 'HEAD' ? undefined : body);
@@ -577,7 +601,7 @@ function origenPermitido(req) {
   let h;
   try { h = new URL(o).hostname.toLowerCase(); } catch { return false; }
   if (/^(localhost|127\.0\.0\.1|\d+\.\d+\.\d+\.\d+)$/.test(h) || h.endsWith('.localhost')) return true;
-  const base = String(req.headers.host || '').toLowerCase().split(':')[0].replace(/^(www|micro|admin)\./, '');
+  const base = String(req.headers.host || '').toLowerCase().split(':')[0].replace(/^(www|micro|admin|sing)\./, '');
   return !!base && (h === base || h.endsWith('.' + base));
 }
 // Conexiones a la vez por dirección IP (según Cloudflare): un local con 20 teles y 160 móviles entra de sobra

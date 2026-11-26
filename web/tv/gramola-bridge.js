@@ -233,7 +233,7 @@ window.GR = (() => {
   // Direcciones públicas: salen del dominio donde está la tele (no van escritas en el código).
   // El micro vive en el subdominio micro.; en pruebas locales (IP o localhost), en /m/index.html.
   const local = () => /^(localhost|\d+\.\d+\.\d+\.\d+)$/.test(location.hostname);
-  G.webHost = () => location.hostname.replace(/^(www|micro)\./, '');
+  G.webHost = () => location.hostname.replace(/^(www|micro|sing)\./, '');
   G.microHost = () => local() ? location.host + '/m' : 'micro.' + G.webHost();
   G.microUrl = () => local() ? location.origin + '/m/index.html' : 'https://' + G.microHost() + '/';
   // ------------------------------------------------------------------ QR real de la sala

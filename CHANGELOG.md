@@ -2,6 +2,11 @@
 
 Versiones con el esquema `1.AA.MMDD.HHMM` (fecha y hora del despliegue).
 
+## 1.26.1126.1647
+- **Web principal y juego en su propio dominio** (variable `SING_HOST`): la raíz del dominio principal pasa a ser la web de presentación, con el botón «¡A Cantar!» arriba que lleva al juego, y la tele se abre en la raíz de `SING_HOST`. Las teles que llegan con `?tv=…` (a la portada o a la dirección antigua `/app`) van al juego conservando la query, así que la app de LG sigue funcionando sin tocarla. El QR y el micro siguen en `micro.` del dominio principal.
+- La web, al día: sección de la app **Gramola Micro** con sus funciones (reacciones, votos, historial y logros, compartir, calentamiento, escáner) y capturas nuevas, insignias de App Store y Google Play («Próximamente» hasta que se publique), preguntas frecuentes y pie con Soporte y Privacidad.
+- El dominio de la web antigua (y su `www.`) redirige siempre a la portada nueva; `/privacidad/` y `/soporte/` van a la misma página en el dominio principal, así que los enlaces de las fichas de las tiendas siguen valiendo.
+
 ## 1.26.1126.1344
 - Reacciones: en el iPhone (WebKit) la rejilla se salía por la derecha y las casillas pisaban «Más opciones»: las columnas crecían con el tamaño propio de los dibujos. Ahora son 4 columnas iguales (`minmax(0, 1fr)`) y casillas de altura fija (13vw, máx. 60 px). Comprobado con WebKit en 440×956 y 375×667.
 

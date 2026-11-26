@@ -108,3 +108,43 @@ footer.foot .repo:hover { color: var(--red); }
   .top nav { display: none; }
   .cols3 .phone { width: 62%; }
 }
+
+/* Botón «¡A Cantar!» de la barra superior */
+.top .btn.cantar { font-size: 17px; padding: 12px 18px; gap: 18px; margin-left: auto; }
+.top nav + .btn.cantar { margin-left: 0; }
+.intro { font-size: clamp(18px, 1.5vw, 21px); max-width: 60ch; margin: -10px 0 30px; }
+h2 b.red { font-weight: 800; color: var(--red); }
+
+/* App Gramola Micro: funciones, tiendas y capturas */
+.app { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 64px); align-items: start; }
+.app .intro { margin-top: 0; }
+.funciones { list-style: none; margin: 0 0 30px; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.funciones li { border-top: 2px solid var(--ink); padding: 14px 20px 18px 0; }
+.funciones b { display: block; font-size: 19px; font-weight: 800; margin-bottom: 4px; }
+.funciones span { color: var(--n7); font-size: 16px; }
+.tiendas { display: flex; flex-wrap: wrap; gap: 12px; }
+.tienda { display: inline-flex; flex-direction: column; justify-content: center; min-width: 190px; padding: 10px 20px 12px; background: var(--ink); color: #fff;
+  text-decoration: none; font-weight: 800; font-size: 22px; line-height: 1.1; letter-spacing: -0.01em; }
+.tienda small { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; opacity: .75; margin-bottom: 3px; }
+.tienda[aria-disabled="true"] { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); cursor: default; }
+.tienda[aria-disabled="true"] small { color: var(--red7); opacity: 1; }
+a.tienda:not([aria-disabled]):hover { background: var(--red); }
+.app-fotos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.app-fotos .phone { width: 100%; aspect-ratio: 390 / 844; object-fit: cover; box-shadow: 0 10px 24px rgba(45, 43, 43, .18); }
+.app-fotos .phone:nth-child(2) { margin-top: 40px; }
+footer.foot .legal-links { display: flex; gap: 22px; margin-left: auto; margin-right: 22px; }
+footer.foot .legal-links a { text-decoration: none; }
+footer.foot .legal-links a:hover { color: var(--red); }
+/* Con el mando de la tele: foco bien visible */
+a:focus-visible, summary:focus-visible { outline: 4px solid var(--red); outline-offset: 3px; }
+
+@media (max-width: 960px) {
+  .app { grid-template-columns: 1fr; }
+  .app-fotos .phone:nth-child(2) { margin-top: 0; }
+}
+@media (max-width: 560px) {
+  .funciones { grid-template-columns: 1fr; }
+  .top .btn.cantar { font-size: 15px; padding: 10px 14px; gap: 12px; }
+  .top .logo { height: 28px; }
+  footer.foot { flex-wrap: wrap; }
+}
