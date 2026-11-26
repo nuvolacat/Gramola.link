@@ -30,7 +30,10 @@
 <meta name="twitter:image" content="%%ORIGEN%%/assets/og/gramola-og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/m/m.css?v=1.26.1126.1149">
+<meta name="gramola-tienda-ios" content="%%TIENDA_IOS%%">
+<meta name="gramola-tienda-android" content="%%TIENDA_ANDROID%%">
+%%BANNER_IOS%%
+<link rel="stylesheet" href="/m/m.css?v=1.26.1126.1157">
 </head>
 <body>
   <!-- MOV-00 Instalar (desde el navegador) -->
@@ -39,6 +42,12 @@
     <p class="step red">Gramola Micro</p>
     <h1 class="big">Instálalo<br>en tu <b>móvil.</b></h1>
     <p class="txt">El micro solo funciona con la app instalada. Ocupa casi nada y se abre con un toque, a pantalla completa.</p>
+    <div class="tiendas" id="tiendas" hidden>
+      <a class="cta tienda" id="t-ios" hidden>Descargar en App Store <span>↓</span></a>
+      <a class="cta tienda" id="t-android" hidden>Disponible en Google Play <span>↓</span></a>
+      <p class="hint">Gratis. Al abrirla, escanea otra vez el QR de la tele: entrarás en su sala.</p>
+      <button class="ghost wide" id="b-sin-app">O úsalo desde el navegador</button>
+    </div>
     <ol class="steps" id="install-steps" hidden></ol>
     <div class="inst-room" id="inst-room" hidden><span>Código de la sala</span><b id="inst-code"></b><p>Al abrir la app, escanea otra vez el QR de la tele o escribe este código.</p></div>
     <p class="hint" id="inst-have">¿Ya la tienes? Ábrela desde tu pantalla de inicio: se llama «Gramola».</p>
@@ -158,11 +167,14 @@
     <p class="tip warn" id="tip-bat" hidden></p>
     <p class="tip warn" id="tip-awake" hidden>Tu móvil no deja mantener la pantalla encendida. Toca la pantalla de vez en cuando o súbele el tiempo de bloqueo: si se apaga, el micro deja de oírte.</p>
     <button class="ghost" id="b-pad">Usar el móvil como mando</button>
-    <button class="ghost wide" id="b-tuner">Probar el micro</button>
-    <button class="ghost wide" id="b-calentar">Calentar la voz</button>
-    <button class="ghost wide hist-open" data-hist="s-wait">Tu historial</button>
-    <button class="ghost wide aj-open" data-aj="s-wait">Ajustes</button>
-    <button class="ghost wide" id="b-leave">Salir de la sala</button>
+    <button class="ghost wide mas-b" id="b-mas" aria-expanded="false">Más opciones <span>▾</span></button>
+    <div class="mas" id="mas" hidden>
+      <button class="ghost wide" id="b-tuner">Probar el micro</button>
+      <button class="ghost wide" id="b-calentar">Calentar la voz</button>
+      <button class="ghost wide hist-open" data-hist="s-wait">Tu historial</button>
+      <button class="ghost wide aj-open" data-aj="s-wait">Ajustes</button>
+      <button class="ghost wide" id="b-leave">Salir de la sala</button>
+    </div>
     <div class="pad" id="pad" hidden>
       <span></span><button data-k="up">▲</button><span></span>
       <button data-k="left">◀</button><button class="ok" data-k="ok">OK</button><button data-k="right">▶</button>
@@ -269,6 +281,6 @@
     <button class="cta" id="b-other">Unirme a otra sala <span>→</span></button>
   </section>
 
-<script type="module" src="/m/m.js?v=1.26.1126.1149"></script>
+<script type="module" src="/m/m.js?v=1.26.1126.1157"></script>
 </body>
 </html>

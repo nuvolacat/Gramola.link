@@ -47,6 +47,8 @@ Variables de entorno:
 | `SERVE_STATIC` | `1` | Con `0`, el servidor solo atiende `/api` y `/ws` (si los estáticos los sirve nginx). |
 | `DATA_DIR` | `server/data` | Récords (`records.json`), estadísticas, actividad, llaves del admin y canciones retiradas. |
 | `TV_HOST` | — | Dominio propio de la tele (p. ej. `tele.ejemplo.com`): la tele se abre en su raíz, `micro.` de ese dominio es el micro, y `/app` de cualquier otro dominio redirige allí conservando `?tv=…` (el editor del admin sigue usando `/app/?preview=1`). Sin ella, la tele vive en `/app`. |
+| `APP_IOS` · `APP_ANDROID` · `APP_ANDROID_SHA256` | — | App nativa del micro: «EQUIPO.identificador» de iOS, paquete de Android y huellas SHA-256 de sus firmas (separadas por comas). Con ellas, `micro.…/.well-known/apple-app-site-association` y `assetlinks.json` hacen que el QR de la tele abra la app si está instalada. |
+| `TIENDA_IOS` · `TIENDA_ANDROID` · `APPLE_ID` | — | Enlaces a las fichas de App Store y Google Play y número de la app en App Store: la página del micro, en el navegador, ofrece la tienda que toca (y en iPhone, el banner de Safari); instalar la web queda como opción secundaria. |
 | `ADMIN_HOST` | — | Host del portal de administración. Sin ella, cualquier host que empiece por `admin.` (en local, `admin.localhost:8877`). |
 
 En `localhost` el micro funciona porque los navegadores lo tratan como seguro. Como el micro solo funciona **instalado

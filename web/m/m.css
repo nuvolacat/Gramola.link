@@ -254,3 +254,13 @@ input, textarea { -webkit-user-select: text; user-select: text; -webkit-touch-ca
 .votar .vf b { flex: 1; font-size: 15px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .votar .vf button { border: 0; background: none; font-size: 26px; line-height: 1; padding: 0 1px; color: var(--soft); }
 .votar .vf button.on { color: #f2c230; }
+
+/* «Esperando»: lo secundario dentro de «Más opciones» */
+.mas[hidden] { display: none; }
+.mas-b { display: flex; justify-content: center; gap: 8px; }
+.mas-b span { transition: transform .2s; }
+.mas-b[aria-expanded="true"] span { transform: rotate(180deg); }
+
+/* Página del micro sin la app: botón a la tienda que toca */
+.tiendas[hidden], .tienda[hidden] { display: none; }
+.cta.tienda { text-decoration: none; margin-top: 6px; }

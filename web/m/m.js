@@ -532,6 +532,9 @@ function setMicImage(slot) {
   $('mic-img').alt = `Micro J${slot}`;
 }
 
+// «Más opciones» en «Esperando»
+$('b-mas').onclick = () => { const abrir = $('mas').hidden; $('mas').hidden = !abrir; $('b-mas').setAttribute('aria-expanded', String(abrir)); };
+
 // ---------------------------------------------------------------- mando
 $('b-pad').onclick = () => {
   const pad = $('pad');
@@ -577,7 +580,7 @@ const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
 if (!nativo && 'serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
 
 let installEvt = null;
-addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; $('b-install').hidden = false; $('install-steps').hidden = true; });
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; if ($('tiendas').hidden) { $('b-install').hidden = false; $('install-steps').hidden = true; } });
 addEventListener('appinstalled', () => { $('b-install').hidden = true; $('install-steps').hidden = false; $('install-steps').innerHTML = '<li>¡Instalado! Ábrelo desde tu pantalla de inicio: se llama «Gramola».</li>'; });
 
 function startScreen() {
@@ -585,6 +588,18 @@ function startScreen() {
     // Desde el QR en el navegador: el código, para entrar luego desde la app (en iPhone no comparte datos con Safari)
     const c = (params.get('s') || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
     if (c.length === 4) { $('inst-room').hidden = false; $('inst-code').textContent = c; }
+    // Si hay app en las tiendas: el botón de la que toca (iPhone → App Store, Android → Google Play, otros → las dos);
+    // instalar la web queda como opción secundaria
+    const meta = n => { const m = document.querySelector(`meta[name="${n}"]`); const v = m && m.content; return v && !v.startsWith('%%') ? v : ''; };
+    const tIos = meta('gramola-tienda-ios'), tAnd = meta('gramola-tienda-android'), isAndroid = /Android/i.test(navigator.userAgent);
+    const verIos = tIos && !isAndroid, verAnd = tAnd && !isIOS;
+    if ((verIos || verAnd) && !SS_get('g-sin-app')) {
+      $('tiendas').hidden = false;
+      if (verIos) { $('t-ios').hidden = false; $('t-ios').href = tIos; }
+      if (verAnd) { $('t-android').hidden = false; $('t-android').href = tAnd; }
+      $('install-steps').hidden = true; $('b-install').hidden = true; $('inst-have').hidden = true;
+      return show('s-install');
+    }
     // iPhone: Safari no tiene botón de instalar; se explican los pasos
     if (isIOS || !('BeforeInstallPromptEvent' in window)) {
       $('install-steps').hidden = false;
@@ -607,10 +622,24 @@ $('b-install').onclick = async () => {
   if (r && r.outcome === 'accepted') { $('b-install').hidden = true; }
 };
 $('b-manual').onclick = () => { show('s-join'); codeInputs[0].focus(); };
+$('b-sin-app').onclick = () => { SS_set('g-sin-app', '1'); $('tiendas').hidden = true; $('inst-have').hidden = false; startScreen(); };
 
 // Lector de QR: el del propio móvil (BarcodeDetector) o jsQR si no lo tiene (iPhone)
 let camStream = null, scanTimer = null;
 async function startScanner() {
+  // App nativa: el lector de QR del sistema (Apple / Google Play), más rápido y con poca luz; si no lo hay, el de la web
+  if (nat) {
+    try {
+      const r = await nat.escanear();
+      const c = parseRoom(r && r.texto);
+      if (c) { toque(30); return roomFound(c); }
+      $('err-scan').textContent = 'Ese QR no es el de una sala de Gramola';
+      return;
+    } catch (e) {
+      if (/cancel/i.test(String(e && e.message))) return;
+      if (/permiso/i.test(String(e && e.message))) { $('err-scan').textContent = 'Sin permiso de la cámara: actívalo en los ajustes del móvil o escribe el código.'; return; }
+    }
+  }
   $('err-scan').textContent = '';
   try {
     camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });

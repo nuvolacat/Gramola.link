@@ -825,7 +825,7 @@ window.GR = (() => {
       'Las carátulas, letras y grabaciones pertenecen a sus titulares y se usan únicamente para identificar y reproducir cada canción en el karaoke.',
     ]],
     ['Infraestructura', [
-      'Alojado en Ubuntu con Apache y Plesk, detrás de Cloudflare, con certificados de Let’s Encrypt.',
+      'Alojado en Ubuntu con Apache y Doku (panel de alojamiento de NUVOLACAT), detrás de Cloudflare, con certificados de Let’s Encrypt.',
     ]],
   ];
   let credUI = null;   // { el, box, cont, y, max }

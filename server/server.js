@@ -19,7 +19,16 @@ const WEB_DIR = process.env.WEB_DIR || path.join(__dirname, '..', 'web');
 const SONGS_DIR = process.env.SONGS_DIR || path.join(WEB_DIR, 'songs');
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const SERVE_STATIC = process.env.SERVE_STATIC !== '0';
-const TV_HOST = String(process.env.TV_HOST || '').toLowerCase();   // dominio propio de la tele (vacío = la tele sigue en /app)
+const TV_HOST = String(process.env.TV_HOST || '').toLowerCase();
+// App nativa del micro (opcional; sin estas variables todo sigue como la web):
+// APP_IOS = «EQUIPO.identificador» (enlaces universales), APP_ANDROID = paquete, APP_ANDROID_SHA256 = huellas de firma
+// separadas por comas (App Links), TIENDA_IOS / TIENDA_ANDROID = enlaces a las fichas (la página del micro los ofrece
+// a quien no tiene la app), APPLE_ID = número de la app en App Store (banner de Safari)
+const APP = {
+  ios: process.env.APP_IOS || '', android: process.env.APP_ANDROID || '',
+  sha: String(process.env.APP_ANDROID_SHA256 || '').split(',').map(x => x.trim().toUpperCase()).filter(Boolean),
+  tiendaIos: process.env.TIENDA_IOS || '', tiendaAndroid: process.env.TIENDA_ANDROID || '', appleId: process.env.APPLE_ID || '',
+};   // dominio propio de la tele (vacío = la tele sigue en /app)
 const MAX_PLAYERS = 8;
 const MAX_ROOMS = Number(process.env.MAX_ROOMS || 500);   // tope de salas a la vez (hay 6.390 códigos; sin tope, al agotarse el servidor se quedaría colgado)
 const ROOM_TTL_MS = 3 * 60 * 1000;  // la sala se cierra sola a los 3 min sin tele conectada (orden del usuario, 03-nov)
@@ -375,6 +384,13 @@ async function handleHttp(req, res) {
   const url = { pathname, search: parsed.search, searchParams: parsed.searchParams };
   const host = String(req.headers.host || '');
   if (await admin.handle(req, res, parsed)) return;   // el admin trabaja con la ruta tal cual llega (descodifica cada trozo)
+  // Enlaces de la app nativa: el QR de la tele abre la app si está instalada (iOS: enlaces universales; Android: App Links)
+  if (MICRO_HOST.test(host) && req.method === 'GET' && url.pathname === '/.well-known/apple-app-site-association' && APP.ios) {
+    return json(res, 200, { applinks: { details: [{ appIDs: [APP.ios], components: [{ '/': '/', '?': { s: '????' } }, { '/': '/' }] }] } });
+  }
+  if (MICRO_HOST.test(host) && req.method === 'GET' && url.pathname === '/.well-known/assetlinks.json' && APP.android && APP.sha.length) {
+    return json(res, 200, [{ relation: ['delegate_permission/common.handle_all_urls'], target: { namespace: 'android_app', package_name: APP.android, sha256_cert_fingerprints: APP.sha } }]);
+  }
   // Subdominio micro.: la app del micro en la raíz
   if (MICRO_HOST.test(host) && MICRO_FILES[url.pathname] && (req.method === 'GET' || req.method === 'HEAD')) {
     return serveStatic(req, res, MICRO_FILES[url.pathname]);
@@ -533,7 +549,9 @@ function serveStatic(req, res, pathname) {
     // Páginas: la dirección pública (para las vistas previas en redes) sale de la petición, no va escrita en el código
     if (type.startsWith('text/html')) {
       const origin = 'https://' + String(req.headers.host || '').replace(/^micro\./, '');
-      const body = Buffer.from(fs.readFileSync(file, 'utf8').replaceAll('%%ORIGEN%%', origin));
+      const banner = APP.appleId ? `<meta name="apple-itunes-app" content="app-id=${APP.appleId}">` : '';
+      const body = Buffer.from(fs.readFileSync(file, 'utf8').replaceAll('%%ORIGEN%%', origin)
+        .replaceAll('%%TIENDA_IOS%%', APP.tiendaIos).replaceAll('%%TIENDA_ANDROID%%', APP.tiendaAndroid).replaceAll('%%BANNER_IOS%%', banner));
       res.writeHead(200, { ...headers, 'content-length': body.length });
       return res.end(req.method === 'HEAD' ? undefined : body);
     }

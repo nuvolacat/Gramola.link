@@ -2,6 +2,13 @@
 
 Versiones con el esquema `1.AA.MMDD.HHMM` (fecha y hora del despliegue).
 
+## 1.26.1126.1157
+- **El QR abre la app del micro** si está instalada: el servidor publica `apple-app-site-association` y `assetlinks.json` en el subdominio del micro (variables `APP_IOS`, `APP_ANDROID`, `APP_ANDROID_SHA256`).
+- **Sin la app, la página del micro manda a la tienda que toca** (iPhone → App Store con banner de Safari, Android → Google Play, otros → las dos), con «O úsalo desde el navegador» de opción secundaria (variables `TIENDA_IOS`, `TIENDA_ANDROID`, `APPLE_ID`; sin ellas, todo sigue como antes).
+- **Lector de QR nativo** en la app (el de Apple y el de Google Play); si no lo hay, el de la web.
+- «Esperando» más limpio: el mando a la vista y lo demás (probar el micro, calentar, historial, ajustes, salir) en «Más opciones».
+- Créditos de la tele: el alojamiento es Doku (antes decía Plesk).
+
 ## 1.26.1126.1149
 - **Calibración del retraso automática**: basta con dejar el móvil junto al altavoz de la tele; el propio móvil oye los 8 pitidos y mide el retraso (decir «pa» con cada pitido sigue valiendo). Textos de la tele cambiados en `tools/build-tv.py`; en el móvil, durante la calibración, «Calibrando · Junto a la tele» en lugar de los puntos.
 - **Votar las actuaciones**: en los resultados, quien no ha cantado ve «Vota la actuación» y puntúa de 1 a 5 estrellas a cada cantante (puede cambiar su voto). La tele enseña arriba a la derecha la **nota del público** (media y número de votos) mientras están los resultados. Ajuste «Votar las actuaciones».
