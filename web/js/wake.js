@@ -3,6 +3,8 @@
 //  1. Screen Wake Lock (iOS 16.4+, Android Chrome…). El sistema lo suelta cada vez que la página se oculta,
 //     así que se vuelve a pedir al volver y también si se suelta solo.
 //  2. Plan B: un vídeo diminuto, mudo y en bucle (en móviles sin Wake Lock, un vídeo reproduciéndose impide el bloqueo).
+import { nativo } from '/js/nativo.js';
+
 let lock = null;
 let wanted = false;
 let video = null;
@@ -46,6 +48,8 @@ function startVideo() {
 // Llamar desde un toque del usuario (los navegadores lo exigen la primera vez)
 export function keepAwake(cb) {
   if (cb) onChange = cb;
+  // App nativa: la pantalla se queda encendida desde el código nativo todo el rato que la app está abierta
+  if (nativo) { wanted = true; onChange(true); return; }
   wanted = true;
   requestLock();
   if (!wakeSupported()) startVideo();
@@ -56,7 +60,7 @@ export function letSleep() {
   lock = null;
   if (video) video.pause();
 }
-export const isAwake = () => !!lock || (video && !video.paused);
+export const isAwake = () => (nativo && wanted) || !!lock || (video && !video.paused);
 
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && wanted) requestLock();

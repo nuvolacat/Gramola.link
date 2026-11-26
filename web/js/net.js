@@ -1,5 +1,6 @@
 // Conexión WebSocket con reconexión automática y medida de latencia.
 // La usan la tele y el móvil.
+import { servidor } from '/js/nativo.js';
 export class Net {
   constructor(onMessage, onStatus) {
     this.onMessage = onMessage;
@@ -23,8 +24,9 @@ export class Net {
   }
 
   url() {
-    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    return `${proto}//${location.host}/ws`;
+    const base = servidor();   // en la app nativa, el servidor de su configuración; en la web, esta misma página
+    const proto = base.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${proto}//${base.host}/ws`;
   }
 
   connect(hello) {

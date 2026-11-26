@@ -2,6 +2,11 @@
 
 Versiones con el esquema `1.AA.MMDD.HHMM` (fecha y hora del despliegue).
 
+## 1.26.1126.1117
+- **Ajustes en el micro**: botón «Ajustes» en «Escanea el QR» y en «Esperando». Cada función se puede desactivar (por defecto, todo activado; se guarda en el móvil): vibrar al tocar, vibrar al acertar, pantalla siempre encendida, usar siempre el micro del móvil (desactivado, se usa el que dé el sistema, p. ej. un micro externo) y, en la app nativa, bajar el brillo al cantar y avisar con poca batería o modo ahorro.
+- **Vibrar al acertar**: al cerrar una nota dorada bien cantada o una frase «Perfecto», la tele manda `buzz` y el servidor lo reenvía solo al móvil de ese cantante (ver PROTOCOLO).
+- **Puente con la app nativa del micro** (`web/js/nativo.js`): con `window.GRAMOLA` el micro habla con el servidor configurado; si hay complemento nativo, el micro, la pantalla, el brillo, la batería y la vibración van por código nativo (la detección de tono es la misma). En el navegador todo sigue igual.
+
 ## 1.26.1126.1031
 - **La tele tiene dominio propio**: con `TV_HOST` la tele se abre directamente en la raíz de ese dominio, su `micro.` es el micro (el QR y el «o entra en…» de la tele lo toman solos) y `www.` va al dominio sin www. La dirección antigua `/app` (y `/app/index.html`) redirige allí con un 301 conservando `?tv=…`, así las teles con la dirección vieja siguen entrando; la vista previa del editor (`/app/?preview=1`) y el admin no cambian.
 

@@ -1,6 +1,8 @@
 // Detección de tono con YIN sobre el micro del móvil.
 // Devuelve nota MIDI decimal (69 = La 440 Hz) o null, y el volumen.
 
+import { plugin as nativoPlugin } from '/js/nativo.js';
+
 export function yin(buf, sampleRate, minHz = 70, maxHz = 1100, threshold = 0.2) {
   const tauMin = Math.floor(sampleRate / maxHz);
   const tauMax = Math.min(Math.floor(sampleRate / minHz), (buf.length >> 1) - 1);
@@ -60,8 +62,9 @@ export const midiName = m => NAMES[((Math.round(m) % 12) + 12) % 12] + (Math.flo
 const AUDIO = { echoCancellation: false, noiseSuppression: false, autoGainControl: true };
 const EXTERNO = /airpod|bluetooth|\bbt\b|headset|headphone|auricular|cascos|earbud|buds|beats|hands-?free|manos libres|jabra|bose|wh-|wf-|usb|externo|external|wired/i;
 const INTEGRADO = /iphone|ipad|built-?in|integrad|interno|del (teléfono|móvil)|phone mic|bottom|front|back|speakerphone|default/i;
-async function phoneMic() {
+async function phoneMic(integrado = true) {
   let s = await navigator.mediaDevices.getUserMedia({ audio: AUDIO });
+  if (!integrado) return s;   // ajuste «Usar siempre el micro del móvil» desactivado: el que dé el sistema (micro externo)
   try {
     const tr = s.getAudioTracks()[0];
     if (!tr || !EXTERNO.test(tr.label)) return s;
@@ -75,19 +78,21 @@ async function phoneMic() {
 }
 
 export class PitchTracker {
-  constructor(onFrame) {
+  constructor(onFrame, opts = {}) {
     this.onFrame = onFrame;
+    this.integrado = opts.integrado !== false;
     this.history = [];
     this.noiseFloor = 0.004;
   }
 
   async start() {
+    if (nativoPlugin) return this.startNativo();
     // El AudioContext se crea ANTES de pedir el micro: así nace con el gesto del usuario (en iPhone, si el aviso de
     // permiso tarda, el gesto caduca y un contexto creado después se queda «suspended» sin remedio)
     const Ctx = window.AudioContext || window.webkitAudioContext;
     this.ctx = new Ctx();
     this.ctx.resume().catch(() => {});
-    const stream = await phoneMic();
+    const stream = await phoneMic(this.integrado);
     await this.ctx.resume().catch(() => {});
     this.analyser = this.ctx.createAnalyser();
     this.analyser.fftSize = 2048;
@@ -113,20 +118,52 @@ export class PitchTracker {
   async reacquire() {
     if (this.busy || !this.timer) return;
     this.busy = true;
-    try { this.use(await phoneMic()); } catch {}
+    try { this.use(await phoneMic(this.integrado)); } catch {}
     this.busy = false;
   }
 
   async recheck() {
     if (!this.stream || this.busy) return;
     const tr = this.stream.getAudioTracks()[0];
-    if (tr && !EXTERNO.test(tr.label)) return;
+    if (!this.integrado || (tr && !EXTERNO.test(tr.label))) return;
     this.busy = true;
-    try { this.use(await phoneMic()); } catch {}
+    try { this.use(await phoneMic(this.integrado)); } catch {}
     this.busy = false;
   }
 
+  // App nativa: el micro integrado lo abre el código nativo (sin auriculares, sin eco ni supresión de ruido) y manda
+  // los últimos 2048 valores 25 veces por segundo; el análisis es el mismo de siempre (analizar)
+  async startNativo() {
+    this.ctx = { state: 'running', sampleRate: 48000, resume: () => Promise.resolve(), close: () => {} };   // (m.js mira tracker.ctx)
+    this.buf = new Float32Array(2048);
+    this.oyente = await nativoPlugin.addListener('audio', e => {
+      const bin = atob(e.d), n = Math.min(bin.length >> 2, this.buf.length), u8 = new Uint8Array(n * 4);
+      for (let i = 0; i < u8.length; i++) u8[i] = bin.charCodeAt(i);
+      this.buf.set(new Float32Array(u8.buffer));
+      if (e.sr) this.ctx.sampleRate = e.sr;
+      this.analizar();
+    });
+    try {
+      const r = await nativoPlugin.micro({ activo: true, muestras: this.buf.length, ms: 40, integrado: this.integrado });
+      if (r && r.sr) this.ctx.sampleRate = r.sr;
+    } catch (e) {
+      this.oyente.remove();
+      const err = new Error(e && e.message || 'micro');
+      err.name = /permi|denied|autoriz/i.test(err.message) ? 'NotAllowedError' : 'NotReadableError';
+      throw err;
+    }
+    this.timer = true;
+  }
+
+  // Cambio del ajuste con el micro abierto
+  setIntegrado(v) {
+    this.integrado = !!v;
+    if (this.oyente) return nativoPlugin.micro({ activo: true, muestras: this.buf.length, ms: 40, integrado: this.integrado }).catch(() => {});
+    if (this.stream) { this.busy = false; this.reacquire(); }
+  }
+
   stop() {
+    if (this.oyente) { this.oyente.remove(); this.oyente = null; nativoPlugin.micro({ activo: false }).catch(() => {}); this.timer = null; return; }
     clearInterval(this.timer);
     this.onDev && navigator.mediaDevices.removeEventListener && navigator.mediaDevices.removeEventListener('devicechange', this.onDev);
     this.stream && this.stream.getTracks().forEach(t => t.stop());
@@ -136,6 +173,10 @@ export class PitchTracker {
   tick() {
     if (this.ctx.state !== 'running') this.ctx.resume().catch(() => {});
     this.analyser.getFloatTimeDomainData(this.buf);
+    this.analizar();
+  }
+
+  analizar() {
     let sum = 0;
     for (let i = 0; i < this.buf.length; i++) sum += this.buf[i] * this.buf[i];
     const rms = Math.sqrt(sum / this.buf.length);

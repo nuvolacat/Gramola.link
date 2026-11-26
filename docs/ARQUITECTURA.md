@@ -71,7 +71,7 @@ El runtime del diseño (`support.js`) usa React 18.3.1 y Babel standalone 7.29.0
 | `web/index.html` | Web informativa. |
 | `web/tv/gramola-bridge.js` | El puente con lo real. |
 | `web/m/` | Web del micro: `index.html`, `m.css`, `m.js`, `manifest.webmanifest`, `sw.js`, `despierto.mp4`. |
-| `web/js/` | `net.js` (WebSocket con reconexión y cola), `pitch.js` (YIN), `ultrastar.js` (lector), `wake.js` (pantalla encendida). |
+| `web/js/` | `net.js` (WebSocket con reconexión y cola), `pitch.js` (YIN), `ultrastar.js` (lector), `wake.js` (pantalla encendida), `nativo.js` (puente opcional con una app nativa del micro: servidor configurable con `window.GRAMOLA`, micro, pantalla, brillo, batería y vibración nativos; en el navegador no hace nada). |
 | `web/assets/` | Recursos del diseño optimizados para web (micros en WebP, iconos, logos…). |
 | `web/audio/menu.mp3` | Música de los menús (original, en bucle). |
 | `web/audio/aplausos.mp3` | Aplausos de los resultados (grabación CC0). |

@@ -1,7 +1,8 @@
 // Gramola · web del móvil: unirse → elegir color → esperar → micro.
 import { Net } from '/js/net.js';
 import { PitchTracker, midiName } from '/js/pitch.js?v=1793577586';
-import { keepAwake as awake, wakeSupported } from '/js/wake.js';
+import { keepAwake as awake, letSleep, wakeSupported } from '/js/wake.js';
+import { nativo, plugin as nat, microHost, vibrar, alAbrirEnlace } from '/js/nativo.js';
 
 const $ = id => document.getElementById(id);
 const LS = {
@@ -34,7 +35,79 @@ addEventListener('selectstart', e => { if (!e.target.closest || !e.target.closes
 
 // El micro SOLO funciona con la app instalada (PWA): en el navegador, únicamente la pantalla de instalar
 function isApp() {
-  return matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone === true;
+  return nativo || matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone === true;
+}
+
+// ---------------------------------------------------------------- ajustes (cada función se puede desactivar; por defecto, todo activado)
+const puedeVibrar = nativo || 'vibrate' in navigator;
+const AJ = [
+  { k: 'vibBotones', t: 'Vibrar al tocar', d: 'Un toque suave al pulsar el mando, leer el QR o hacer la foto.', si: puedeVibrar },
+  { k: 'vibCantar', t: 'Vibrar al acertar', d: 'Cuando cantas bien una nota dorada o te sale una frase perfecta.', si: puedeVibrar },
+  { k: 'pantalla', t: 'Pantalla siempre encendida', d: 'Si la desactivas y el móvil se bloquea, el micro deja de oírte.', si: true },
+  { k: 'brillo', t: 'Bajar el brillo al cantar', d: 'La pantalla se oscurece durante la canción para ahorrar batería y vuelve al acabar.', si: nativo },
+  { k: 'bateria', t: 'Avisar con poca batería', d: 'Te avisa si queda poca batería o si el modo de ahorro está activado: puede frenar el micro.', si: nativo },
+  { k: 'microMovil', t: 'Usar siempre el micro del móvil', d: 'Aunque haya auriculares o AirPods conectados. Desactívalo para cantar con un micro externo.', si: true },
+];
+let ajustes = {};
+try { ajustes = JSON.parse(LS.get('g-ajustes') || '{}') || {}; } catch { ajustes = {}; }
+const aj = k => ajustes[k] !== false;
+function ponAjuste(k, v) {
+  ajustes[k] = !!v;
+  LS.set('g-ajustes', JSON.stringify(ajustes));
+  aplicarAjuste(k);
+}
+function aplicarAjuste(k) {
+  if (k === 'pantalla') {
+    if (nat) nat.pantalla({ encendida: aj('pantalla') }).catch(() => {});
+    if (aj('pantalla')) { if (joined) keepAwake(); } else { letSleep(); $('tip-awake').hidden = true; }
+  }
+  if (k === 'brillo' && nat && screen === 's-sing') nat.brillo({ bajo: aj('brillo') }).catch(() => {});
+  if (k === 'bateria') revisarBateria();
+  if (k === 'microMovil' && tracker && tracker.setIntegrado) tracker.setIntegrado(aj('microMovil'));
+}
+function pintarAjustes() {
+  const box = $('ajustes');
+  box.innerHTML = '';
+  for (const a of AJ) {
+    if (!a.si) continue;
+    const fila = document.createElement('label');
+    fila.className = 'aj';
+    const txt = document.createElement('div');
+    const b = document.createElement('b'); b.textContent = a.t;
+    const d = document.createElement('span'); d.textContent = a.d;
+    txt.append(b, d);
+    const sw = document.createElement('button');
+    sw.className = 'sw'; sw.type = 'button'; sw.setAttribute('role', 'switch'); sw.setAttribute('aria-label', a.t);
+    sw.setAttribute('aria-checked', String(aj(a.k)));
+    sw.onclick = e => {
+      e.preventDefault();
+      ponAjuste(a.k, !aj(a.k));
+      sw.setAttribute('aria-checked', String(aj(a.k)));
+      if (aj('vibBotones')) vibrar(10);
+    };
+    fila.append(txt, sw);
+    box.append(fila);
+  }
+}
+let ajVuelta = 's-scan';
+document.querySelectorAll('.aj-open').forEach(b => b.addEventListener('click', () => { ajVuelta = b.dataset.aj || screen; pintarAjustes(); show('s-ajustes'); }));
+$('b-aj-reset').onclick = () => { for (const a of AJ) ponAjuste(a.k, true); pintarAjustes(); };
+const toque = ms => { if (aj('vibBotones')) vibrar(ms); };
+
+// Batería (solo app): aviso en «Esperando» si queda poca o está el modo ahorro
+let batT = null;
+async function revisarBateria() {
+  const tip = $('tip-bat');
+  if (!nat || !aj('bateria') || screen !== 's-wait') { tip.hidden = true; return; }
+  try {
+    const b = await nat.bateria();
+    const pct = b.nivel >= 0 ? Math.round(b.nivel * 100) : null;
+    let t = '';
+    if (b.ahorro) t = 'El modo de ahorro de batería está activado: puede frenar el micro. Si puedes, desactívalo mientras cantas.';
+    else if (pct != null && pct <= 20 && !b.cargando) t = `Te queda un ${pct} % de batería. Enchufa el móvil para no quedarte a mitad de canción.`;
+    tip.textContent = t;
+    tip.hidden = !t;
+  } catch { tip.hidden = true; }
 }
 
 // Volver atrás: los botones «← Volver» y el gesto de volver del móvil (historial) hacen lo mismo
@@ -43,8 +116,13 @@ let fromPop = false;
 function show(id) {
   if (!isApp() && id !== 's-install') id = 's-install';
   if (BACK[id] && !fromPop && id !== screen && !(history.state && history.state.g === id)) history.pushState({ g: id }, '');
+  const antes = screen;
   screen = id;
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
+  // App: brillo bajo mientras se canta (si está activado) y aviso de batería en «Esperando»
+  if (nat && aj('brillo') && (id === 's-sing') !== (antes === 's-sing')) nat.brillo({ bajo: id === 's-sing' }).catch(() => {});
+  clearInterval(batT);
+  if (id === 's-wait') { revisarBateria(); batT = setInterval(revisarBateria, 60000); } else $('tip-bat').hidden = true;
   document.querySelector('meta[name=theme-color]').content = id === 's-sing' ? '#f3f2f2' : '#f3f2f2';
 }
 const code = () => codeInputs.map(i => i.value).join('').toUpperCase();
@@ -148,6 +226,7 @@ function onMessage(m) {
     return;
   }
   // Orden desde la administración: recargar la app (tras un despliegue)
+  if (m.type === 'buzz') { if (aj('vibCantar')) vibrar(m.k === 'frase' ? 60 : 30, m.k === 'frase' ? 'exito' : 'medio'); return; }
   if (m.type === 'admin' && m.action === 'reload') { setTimeout(() => location.reload(), 300 + Math.random() * 1500); return; }
   // Aviso desde la administración: una franja arriba unos segundos
   if (m.type === 'admin' && m.action === 'toast' && m.text) {
@@ -234,7 +313,7 @@ $('b-enter').onclick = async () => {
 async function startMic() {
   if (tracker && tracker.ctx) return true;
   try {
-    tracker = new PitchTracker(onPitch);
+    tracker = new PitchTracker(onPitch, { integrado: aj('microMovil') });
     await tracker.start();
     return true;
   } catch (e) {
@@ -260,7 +339,7 @@ async function showBlocked(err) {
   let steps;
   if (insecure) {
     $('blocked-text').textContent = 'El navegador solo deja usar el micro en páginas seguras (https). Entra así:';
-    steps = ['Abre ' + location.host + ' en el móvil', 'O escanea otra vez el QR de la tele', 'Pon tu nombre y elige tu color'];
+    steps = ['Abre ' + microHost() + ' en el móvil', 'O escanea otra vez el QR de la tele', 'Pon tu nombre y elige tu color'];
   } else if (err && err.name === 'NotFoundError') {
     $('blocked-text').textContent = 'No encontramos ningún micrófono en este aparato.';
     steps = ['Prueba con otro móvil', 'O con unos auriculares con micro'];
@@ -326,7 +405,7 @@ $('b-pad').onclick = () => {
   $('b-pad').textContent = pad.hidden ? 'Usar el móvil como mando' : 'Ocultar el mando';
 };
 document.querySelectorAll('.pad button').forEach(b => {
-  b.addEventListener('click', () => { net.send({ type: 'input', key: b.dataset.k }); navigator.vibrate && navigator.vibrate(10); });
+  b.addEventListener('click', () => { net.send({ type: 'input', key: b.dataset.k }); toque(10); });
 });
 
 // ---------------------------------------------------------------- reconexión, sala cerrada
@@ -335,6 +414,7 @@ $('b-other').onclick = () => { codeInputs.forEach(c => (c.value = '')); LS.del('
 
 // Pantalla siempre encendida (si se apaga, el micro deja de funcionar)
 function keepAwake() {
+  if (!aj('pantalla')) return;
   awake(ok => { $('tip-awake').hidden = ok; });
 }
 document.addEventListener('visibilitychange', () => {
@@ -360,7 +440,7 @@ document.addEventListener('visibilitychange', () => {
 const standalone = isApp();
 const fromQR = !!params.get('s');
 const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
+if (!nativo && 'serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
 
 let installEvt = null;
 addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; $('b-install').hidden = false; $('install-steps').hidden = true; });
@@ -434,7 +514,7 @@ async function startScanner() {
     let txt = null;
     try { txt = await detect(); } catch {}
     const code = parseRoom(txt);
-    if (code) { navigator.vibrate && navigator.vibrate(30); stopScanner(); return roomFound(code); }
+    if (code) { toque(30); stopScanner(); return roomFound(code); }
     scanTimer = setTimeout(tick, 180);
   };
   tick();
@@ -573,7 +653,7 @@ $('b-sf-shot').onclick = () => {
   shot = c.toDataURL('image/jpeg', 0.72);
   $('sf-img').src = shot;
   sfMode(true);
-  navigator.vibrate && navigator.vibrate(20);
+  toque(20);
 };
 $('b-sf-ok').onclick = () => {
   photo = shot;
@@ -585,7 +665,15 @@ $('b-sf-ok').onclick = () => {
 photoPreview();
 
 // Dirección de esta web en los pies de página (no va escrita en el código)
-document.querySelectorAll('.g-host').forEach(e => (e.textContent = location.host));
+document.querySelectorAll('.g-host').forEach(e => (e.textContent = microHost()));
+
+// Ajuste de pantalla al arrancar (la app nativa la mantiene encendida desde que se abre, salvo que se desactive)
+if (nat && !aj('pantalla')) nat.pantalla({ encendida: false }).catch(() => {});
+BACK['s-ajustes'] = () => show(ajVuelta);
+$('b-aj-back').onclick = () => goBack();
+
+// App nativa: el QR de la tele (o un enlace de sala) abre la app directamente en esa sala
+alAbrirEnlace(url => { const c = parseRoom(url); if (c) roomFound(c); });
 
 // ---------------------------------------------------------------- giro: en horizontal, el micro se dibuja como en vertical
 (function () {

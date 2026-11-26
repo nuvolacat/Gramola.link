@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+<defs><pattern id="rej" width="34" height="34" patternUnits="userSpaceOnUse" patternTransform="rotate(45 512 400)"><rect width="34" height="34" fill="#2b2828"/><circle cx="17" cy="17" r="9" fill="#141212"/></pattern>
+<radialGradient id="brillo" cx="38%" cy="30%" r="70%"><stop offset="0" stop-color="#fff" stop-opacity=".16"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>
+<rect width="1024" height="1024" fill="#ec3013"/>
+<path d="M318 652 L706 652 L648 1024 L376 1024 Z" fill="#161414"/>
+<rect x="470" y="748" width="84" height="170" rx="16" fill="#2b2828"/>
+<path d="M486 782h52M486 812h52M486 842h52M486 872h52" stroke="#141212" stroke-width="10"/>
+<path d="M300 560 A212 212 0 1 1 724 560 Z" fill="url(#rej)"/>
+<path d="M300 560 A212 212 0 1 1 724 560 Z" fill="url(#brillo)"/>
+<rect x="288" y="548" width="448" height="30" rx="8" fill="#161414"/>
+<rect x="300" y="578" width="424" height="82" fill="#ff4fa3"/>
+<path d="M440 597h144M430 619h164M440 641h144" stroke="#d93b86" stroke-width="10"/>
+</svg>

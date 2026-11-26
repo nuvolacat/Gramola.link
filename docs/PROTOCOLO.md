@@ -22,6 +22,7 @@ Una conexión WebSocket en `/ws` por dispositivo; mensajes JSON con `type`.
 | `{type:"admin", action, text?}` | servidor → tele | Desde la administración: `toast` (aviso en pantalla) o `reload` (recargar la app). |
 | `{type:"bot"}` | tele → servidor | «Simular jugador»: ocupa un color libre y canta desde la tele. |
 | `{type:"kick", p}` · `{type:"new-code"}` | tele → servidor | Expulsar jugador · cerrar la sala y abrir otra. |
+| `{type:"buzz", p, k}` | tele → servidor | Aviso a un cantante: `k` = `"oro"` (nota dorada acertada) o `"frase"` (frase perfecta). El servidor solo lo reenvía al móvil del jugador `p`; cualquier otro `k` se descarta. |
 | `{type:"sing", song, duo, delay, singers:[{id, part, tol}]}` | tele → servidor | Empieza una canción: carpeta de la canción, si es modo Dúo, ajuste del micro (ms) y, por cantante, su id, su parte (0/1) y su margen en semitonos. El servidor lee la misma partitura y lleva su propia puntuación con la voz que reenvía ([PUNTUACION.md](PUNTUACION.md)). |
 | `{type:"clock", pos, playing, lat}` | tele → servidor | Cada segundo (y al pausar o seguir): segundo de la canción que suena, si está en marcha y media latencia de la tele (ms). |
 | `{type:"photo", p, data}` | servidor → tele | Foto del jugador `p` (JPEG 200×200 en `data:`, o vacío para quitarla). Al reconectar la tele se reenvían todas. |
@@ -40,6 +41,7 @@ Una conexión WebSocket en `/ws` por dispositivo; mensajes JSON con `type`.
 | `{type:"pitch", n, v, lat}` · `{type:"input", key}` · `{type:"leave"}` | móvil → servidor | Voz (25/s), mando, salir. |
 | `{type:"photo", data}` | móvil → servidor | Foto del jugador (cámara frontal, ≤48 KB). Solo se guarda en memoria mientras dura la sala. |
 | `{type:"roster", players}` · `{type:"host", online}` · `{type:"kicked"}` · `{type:"closed"}` | servidor → móvil | Lista de la sala, tele conectada o no, expulsado, sala cerrada. |
+| `{type:"buzz", k}` | servidor → móvil | El móvil vibra si el cantante tiene activado «Vibrar al acertar» en sus ajustes. |
 | `{type:"admin", action:"toast", text}` | servidor → móvil | Aviso desde la administración (franja arriba unos segundos). |
 
 ## Límites

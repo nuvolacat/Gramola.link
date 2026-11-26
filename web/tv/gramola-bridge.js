@@ -154,6 +154,8 @@ window.GR = (() => {
   G.photos = {};
   G.photoOf = (id, col) => { const d = id && G.photos[id]; return d ? { ph: 'url("' + d + '") center / cover no-repeat', phw: 56, pho: '2px solid ' + (col || '#201e1d') } : { ph: 'none', phw: 0, pho: 'none' }; };
   G.isOff = i => i < G.players.length && !PLAYERS[i][5];
+  // Aviso al móvil de un cantante (vibra si lo tiene activado en sus ajustes); los jugadores simulados no tienen móvil
+  G.buzz = (sg, k) => { if (G.net && !G.preview && sg && sg.id != null) G.net.send({ type: 'buzz', p: sg.id, k }); };
   G.addBot = c => { if (G.players.length >= 8) return c.setState({ err: 'full' }); G.net && G.net.send({ type: 'bot' }); };
   G.kickLast = c => {
     const p = G.players[G.players.length - 1];
@@ -1425,7 +1427,7 @@ window.GR = (() => {
           const r = n.sl[k].reduce((x, y) => x + y, 0) / n.sl[k].length;
           c.combo[k] = r > 0.6 ? c.combo[k] + 1 : 0;
           c.best[k] = Math.max(c.best[k], c.combo[k]);
-          if (n.type === 'gold' && r > 0.6) c.goldHit[k]++;
+          if (n.type === 'gold' && r > 0.6) { c.goldHit[k]++; G.buzz(S[k], 'oro'); }
           // Vibrato bien hecho en una nota bien cantada: la mitad de lo que vale la nota, de propina
           if (n.vibFrom && n.vibFrom[k] != null && r > 0.5) {
             const bonus = Math.min(Math.round(G.VIB.BONUS * ch.unitP[S[k].part] * n.sl[k].length * (n.type === 'gold' ? 2 : 1)), Math.max(0, 10000 - c.score[k]));   // (nunca por encima de 10.000)
@@ -1446,6 +1448,8 @@ window.GR = (() => {
         const ratio = k => { let h = 0, t = 0; ph.notes.forEach(n => { if (n.sl) { h += n.sl[k].reduce((x, y) => x + y, 0); t += n.sl[k].length; } }); return t ? h / t : null; };
         if (duel) c.teams().forEach((T, t) => { const rs = T.ks.map(ratio).filter(r => r != null); if (!rs.length) return; const R = rate(rs.reduce((x, y) => x + y, 0) / rs.length); c.pops.push({ team: t, text: R[0], bg: R[1], fg: R[2], t0: now }); });
         else for (let k = 0; k < K; k++) { if (!ph.parts.includes(S[k].part)) continue; const r = ratio(k); if (r == null) continue; const R = rate(r); c.pops.push({ k, text: R[0], bg: R[1], fg: R[2], t0: now }); }
+        // Frase perfecta: el móvil de quien la ha cantado vibra (en duelo también, cada cantante por su cuenta)
+        for (let k = 0; k < K; k++) { if (!ph.parts.includes(S[k].part)) continue; const r = ratio(k); if (r != null && r > 0.9) G.buzz(S[k], 'frase'); }
       }
     }
     if (duel) {

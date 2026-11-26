@@ -30,7 +30,7 @@
 <meta name="twitter:image" content="%%ORIGEN%%/assets/og/gramola-og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/m/m.css?v=1.26.1126.1031">
+<link rel="stylesheet" href="/m/m.css?v=1.26.1126.1117">
 </head>
 <body>
   <!-- MOV-00 Instalar (desde el navegador) -->
@@ -49,7 +49,7 @@
 
   <!-- MOV-00b Escanear (app instalada) -->
   <section id="s-scan" class="screen">
-    <header class="bar"><img class="logo" src="/assets/logo/horizontal-claro.png" alt="gramola"></header>
+    <header class="bar"><img class="logo" src="/assets/logo/horizontal-claro.png" alt="gramola"><button class="back aj-open" data-aj="s-scan">Ajustes</button></header>
     <p class="step">Para entrar en la sala</p>
     <h1 class="big">Escanea<br>el <b>QR.</b></h1>
     <p class="txt">Apunta la cámara al QR que sale en la tele y entrarás en su sala.</p>
@@ -141,9 +141,11 @@
     <p class="txt" id="wait-text">Deja el móvil a mano: cuando empiece la canción, se convierte en tu micro.</p>
     <div class="grow"></div>
     <p class="tip" id="tip-install" hidden></p>
+    <p class="tip warn" id="tip-bat" hidden></p>
     <p class="tip warn" id="tip-awake" hidden>Tu móvil no deja mantener la pantalla encendida. Toca la pantalla de vez en cuando o súbele el tiempo de bloqueo: si se apaga, el micro deja de oírte.</p>
     <button class="ghost" id="b-pad">Usar el móvil como mando</button>
     <button class="ghost wide" id="b-tuner">Probar el micro</button>
+    <button class="ghost wide aj-open" data-aj="s-wait">Ajustes</button>
     <button class="ghost wide" id="b-leave">Salir de la sala</button>
     <div class="pad" id="pad" hidden>
       <span></span><button data-k="up">▲</button><span></span>
@@ -179,6 +181,16 @@
     <button class="cta" id="b-tuner-back">Volver <span>←</span></button>
   </section>
 
+  <!-- Ajustes: cada función se puede desactivar (por defecto, todo activado) -->
+  <section id="s-ajustes" class="screen">
+    <header class="bar"><button class="back" id="b-aj-back" aria-label="Volver">← Volver</button></header>
+    <h2 class="mid">Ajustes</h2>
+    <p class="txt">Todo viene activado. Lo que cambies se guarda en este móvil.</p>
+    <div class="ajustes" id="ajustes"></div>
+    <div class="grow"></div>
+    <button class="ghost wide" id="b-aj-reset">Activarlo todo otra vez</button>
+  </section>
+
   <!-- MOV-05 Reconectando -->
   <section id="s-reconnect" class="screen">
     <header class="bar"><img class="logo" src="/assets/logo/horizontal-claro.png" alt="gramola"></header>
@@ -202,6 +214,6 @@
     <button class="cta" id="b-other">Unirme a otra sala <span>→</span></button>
   </section>
 
-<script type="module" src="/m/m.js?v=1.26.1126.1031"></script>
+<script type="module" src="/m/m.js?v=1.26.1126.1117"></script>
 </body>
 </html>
