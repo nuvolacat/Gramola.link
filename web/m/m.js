@@ -2,7 +2,7 @@
 import { Net } from '/js/net.js';
 import { PitchTracker, midiName } from '/js/pitch.js?v=1793577586';
 import { keepAwake as awake, letSleep, wakeSupported } from '/js/wake.js';
-import { nativo, plugin as nat, microHost, vibrar, alAbrirEnlace, urlDeArranque, compartirImagen } from '/js/nativo.js';
+import { nativo, plugin as nat, microHost, vibrar, alAbrirEnlace, urlDeArranque, compartirImagen, servidor } from '/js/nativo.js';
 import * as H from '/m/historial.js';
 import { dibujar, ESTILOS, valoracion } from '/m/compartir.js';
 import { crearCalentamiento } from '/m/calentar.js';
@@ -99,6 +99,8 @@ function pintarAjustes() {
 }
 let ajVuelta = 's-scan';
 document.querySelectorAll('.aj-open').forEach(b => b.addEventListener('click', () => { ajVuelta = b.dataset.aj || screen; pintarAjustes(); show('s-ajustes'); }));
+// La política de privacidad vive en el servidor (en la app, se abre en el navegador del sistema)
+$('a-privacidad').href = new URL('/privacidad/', servidor()).href;
 $('b-aj-reset').onclick = () => { for (const a of AJ) ponAjuste(a.k, true); pintarAjustes(); };
 const toque = ms => { if (aj('vibBotones')) vibrar(ms); };
 

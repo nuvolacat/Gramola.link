@@ -2,6 +2,10 @@
 
 Versiones con el esquema `1.AA.MMDD.HHMM` (fecha y hora del despliegue).
 
+## 1.26.1126.1318
+- **Política de privacidad** pública en `/privacidad/` (la piden App Store y Google Play): sin cuentas, la voz no se graba (solo nota y volumen), foto solo en memoria mientras dura la sala, récords con el nombre de jugador, datos locales del móvil, proveedores y derechos. Como lleva los datos del titular, la página vive en `deploy/privado/web` (fuera del repo).
+- Micro: enlace «Política de privacidad» al pie de los ajustes (en la app se abre en el navegador del sistema).
+
 ## 1.26.1126.1205
 - App nativa (iOS): `addListener` devuelve el oyente y no una promesa; el `.catch` que se le ponía rompía el arranque del micro justo ahí. Ahora se aceptan las dos formas. Comprobado en el simulador de iPhone: el complemento nativo responde y el micro manda 25 lecturas por segundo.
 
