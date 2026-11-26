@@ -5,6 +5,7 @@ import { keepAwake as awake, letSleep, wakeSupported } from '/js/wake.js';
 import { nativo, plugin as nat, microHost, vibrar, alAbrirEnlace, compartirImagen } from '/js/nativo.js';
 import * as H from '/m/historial.js';
 import { dibujar, ESTILOS, valoracion } from '/m/compartir.js';
+import { crearCalentamiento } from '/m/calentar.js';
 
 const $ = id => document.getElementById(id);
 const LS = {
@@ -466,6 +467,7 @@ function onPitch(n, v, info) {
     if (info.gate) micStats.gate++;
     if (n !== null) { micStats.voiced++; micStats.clar += info.clarity; }
     if (screen === 's-tuner') drawTuner(n, v, info);
+    if (screen === 's-calentar') cal.frame(n);
   }
   if (joined && screen === 's-sing') net.send({ type: 'pitch', n, v, lat: net.halfLatency });   // solo cuando toca cantar (la tele no lo usa en otras pantallas)
   if (screen === 's-sing') drawVu(v, n !== null);
@@ -681,7 +683,40 @@ $('b-leave').onclick = () => {
 let tunerFrom = 's-wait', refOsc = null, refCtx = null;
 $('b-tuner').onclick = async () => { if (!(await startMic())) return; tunerFrom = screen; show('s-tuner'); };
 $('b-tuner-back').onclick = () => { stopRef(); show(tunerFrom === 's-tuner' ? 's-wait' : tunerFrom); };
+// Rango de voz: la nota más grave y la más aguda que se aguantan (6 lecturas seguidas, ~0,25 s, con tono claro)
+let rango = null; try { rango = JSON.parse(LS.get('g-rango') || 'null'); } catch {}
+let rNota = null, rCuenta = 0;
+const TIPOS = [[52, 'bajo'], [55, 'barítono'], [59, 'tenor'], [62, 'contralto'], [66, 'mezzosoprano'], [99, 'soprano']];
+function pintarRango() {
+  if (!rango) { $('t-rango').textContent = 'Canta lo más grave y lo más agudo que puedas'; $('t-tipo').textContent = ''; return; }
+  const st = rango.max - rango.min, oct = Math.floor(st / 12), resto = st % 12;
+  $('t-rango').textContent = `${midiName(rango.min)} – ${midiName(rango.max)}`;
+  const tipo = TIPOS.find(([lim]) => (rango.min + rango.max) / 2 < lim)[1];
+  $('t-tipo').textContent = (oct ? `${oct} octava${oct > 1 ? 's' : ''}${resto ? ` y ${resto} semitono${resto > 1 ? 's' : ''}` : ''}` : `${st} semitonos`) + (st >= 7 ? ` · voz de ${tipo} (orientativo)` : '');
+}
+function medirRango(n, info) {
+  if (n === null || (info.clarity || 0) < 0.75) { rCuenta = 0; return; }
+  const r = Math.round(n);
+  if (r !== rNota) { rNota = r; rCuenta = 1; return; }
+  if (++rCuenta !== 6) return;
+  const nuevo = rango ? { min: Math.min(rango.min, r), max: Math.max(rango.max, r) } : { min: r, max: r };
+  if (!rango || nuevo.min !== rango.min || nuevo.max !== rango.max) { rango = nuevo; LS.set('g-rango', JSON.stringify(rango)); pintarRango(); }
+}
+$('b-rango').onclick = () => { rango = null; LS.del('g-rango'); pintarRango(); };
+pintarRango();
+
+// Calentamiento vocal
+const cal = crearCalentamiento({ $, rango: () => rango, toque });
+let calDesde = 's-wait';
+$('b-calentar').onclick = async () => { if (!(await startMic())) return; calDesde = screen; cal.abrir(); show('s-calentar'); };
+$('b-cal').onclick = () => cal.boton();
+$('b-cal-baja').onclick = () => cal.mover(-1);
+$('b-cal-sube').onclick = () => cal.mover(1);
+BACK['s-calentar'] = () => { cal.cerrar(); show(calDesde); };
+$('b-cal-back').onclick = () => goBack();
+
 function drawTuner(n, v, info) {
+  medirRango(n, info);
   $('t-vol').style.width = Math.round(Math.min(1, v) * 100) + '%';
   $('t-clar').style.width = Math.round((info.clarity || 0) * 100) + '%';
   if (n === null) { $('t-note').textContent = '–'; $('t-hz').textContent = info.gate ? 'Te oigo, pero no distingo la nota' : 'Silencio'; return; }

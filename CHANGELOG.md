@@ -2,6 +2,10 @@
 
 Versiones con el esquema `1.AA.MMDD.HHMM` (fecha y hora del despliegue).
 
+## 1.26.1126.1146
+- **Tu rango de voz** en «Probar el micro»: guarda la nota más grave y la más aguda que aguantas (un cuarto de segundo con tono claro), cuántas octavas abarca y, orientativo, el tipo de voz. «Medir otra vez» lo reinicia.
+- **Calentar la voz** (botón en «Esperando»): respiración guiada (3 ciclos de 4 s coger aire, 4 s aguantar y 6 s soltar) y escalas Do-Re-Mi-Fa-Sol-Fa-Mi-Re-Do que el móvil toca y tú repites, en tres rondas un semitono más arriba; cada nota cuenta si la aguantas 0,4 s a menos de medio semitono, con «sube / baja» de ayuda. Empieza en una nota cómoda según tu rango (o la que elijas con «Más grave / Más agudo»).
+
 ## 1.26.1126.1143
 - **Reacciones del público**: mientras otro canta (o en los resultados), «Esperando» muestra «Anima a quien canta» con seis botones (aplauso, fuego, corazón, estrella, risa y fiesta). Cada toque sube por el lado derecho de la tele con el nombre de quien la manda, en su color (capa encima de todo, sin tocar el diseño; 24 a la vez como mucho). El servidor deja 4 por segundo por jugador. Ajuste «Reacciones del público» para quitarlas del móvil.
 - Los dibujos son de **Noto Emoji** (Google, Apache 2.0; `web/assets/reacciones` con su licencia): se ven igual en la tele LG, que no tiene emojis en color, y en los móviles. Añadido a los créditos.
