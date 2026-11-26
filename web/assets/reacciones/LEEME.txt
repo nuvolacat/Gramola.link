@@ -1,3 +1,4 @@
 Dibujos de Noto Emoji (Google), carpeta 2D/svg de https://github.com/googlefonts/noto-emoji
 Licencia Apache 2.0 (ver LICENSE-noto-emoji.txt). Renombrados: aplauso=1f44f, fuego=1f525, corazon=2764,
-estrella=2b50, risa=1f602, fiesta=1f389.
+estrella=2b50, risa=1f602, fiesta=1f389, micro=1f3a4, notas=1f3b6, cien=1f4af,
+enamorado=1f60d, manos=1f64c, rock=1f918.

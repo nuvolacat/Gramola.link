@@ -248,6 +248,7 @@ function show(id) {
   const antes = screen;
   screen = id;
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
+  if (antes !== id) entrada($(id), fromPop);
   // App: brillo bajo mientras se canta (si está activado) y aviso de batería en «Esperando»
   if (nat && aj('brillo') && (id === 's-sing') !== (antes === 's-sing')) nat.brillo({ bajo: id === 's-sing' }).catch(() => {});
   if (id === 's-sing' && antes !== 's-sing' && !$('s-sing').classList.contains('calib')) $('sing-pts').textContent = '0';   // canción nueva: los puntos empiezan de cero
@@ -256,6 +257,16 @@ function show(id) {
   document.querySelector('meta[name=theme-color]').content = id === 's-sing' ? '#f3f2f2' : '#f3f2f2';
 }
 const code = () => codeInputs.map(i => i.value).join('').toUpperCase();
+// Transición de entrada: los elementos de la pantalla suben (o bajan, al volver atrás) escalonados. La de cantar
+// (girada 180°) y la de la cámara entran sin más: su contenido ya lleva sus propias transformaciones.
+function entrada(el, atras) {
+  if (!el || el.classList.contains('sing') || el.classList.contains('cam')) return;
+  [...el.children].forEach((c, i) => c.style.setProperty('--i', Math.min(i, 9)));
+  el.classList.remove('entra', 'atras');
+  void el.offsetWidth;   // (reinicia la animación aunque se vuelva a la misma pantalla)
+  el.classList.add('entra');
+  el.classList.toggle('atras', !!atras);
+}
 
 // ---------------------------------------------------------------- casillas del código
 codeInputs.forEach((el, i) => {
@@ -535,6 +546,7 @@ function setMicImage(slot) {
 }
 
 // «Más opciones» en «Esperando»
+[...$('mas').children].forEach((c, i) => c.style.setProperty('--i', i));
 $('b-mas').onclick = () => { const abrir = $('mas').hidden; $('mas').hidden = !abrir; $('b-mas').setAttribute('aria-expanded', String(abrir)); };
 
 // ---------------------------------------------------------------- reconexión, sala cerrada

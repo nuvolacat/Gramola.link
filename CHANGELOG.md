@@ -2,6 +2,10 @@
 
 Versiones con el esquema `1.AA.MMDD.HHMM` (fecha y hora del despliegue).
 
+## 1.26.1126.1338
+- **Transiciones en el micro**: al cambiar de pantalla, sus elementos suben escalonados (al volver atrás, bajan); «Más opciones» se despliega en cascada y los botones se hunden un poco al pulsarlos. No afecta a la pantalla de cantar (girada) ni a la cámara, y se desactivan si el móvil pide reducir el movimiento.
+- **12 reacciones en filas de 4** (antes 6 en una fila que no cabía): se suman micro, notas, cien, enamorado, manos arriba y rock (Noto Emoji, Apache 2.0). Casillas algo más bajas para que «Esperando» quepa entero en un iPhone pequeño.
+
 ## 1.26.1126.1335
 - **El móvil ya no hace de mando de la tele**: fuera «Usar el móvil como mando» y su cruceta en «Esperando». Así nadie puede mover la tele de otro ni pulsar algo sin querer. El servidor ignora los `input` que lleguen de un móvil; la tele se maneja con su mando, el teclado o un mando de consola.
 

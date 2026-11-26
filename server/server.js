@@ -35,7 +35,7 @@ const MAX_PLAYERS = 8;
 const MAX_ROOMS = Number(process.env.MAX_ROOMS || 500);   // tope de salas a la vez (hay 6.390 códigos; sin tope, al agotarse el servidor se quedaría colgado)
 const ROOM_TTL_MS = 3 * 60 * 1000;  // la sala se cierra sola a los 3 min sin tele conectada (orden del usuario, 03-nov)
 // Reacciones del público que se pueden mandar a la tele (dibujos de Noto Emoji en web/assets/reacciones)
-const REACCIONES = ['aplauso', 'fuego', 'corazon', 'estrella', 'risa', 'fiesta'];
+const REACCIONES = ['aplauso', 'fuego', 'corazon', 'estrella', 'risa', 'fiesta', 'micro', 'notas', 'cien', 'enamorado', 'manos', 'rock'];
 // Un color por micro: J1..J8
 const COLORS = ['#ff4fa3', '#3fd0ff', '#ffd23f', '#7cff6b', '#b38cff', '#ff8a3d', '#4fffd8', '#ff5a5a'];
 
