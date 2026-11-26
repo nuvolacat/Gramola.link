@@ -23,6 +23,7 @@ Una conexión WebSocket en `/ws` por dispositivo; mensajes JSON con `type`.
 | `{type:"bot"}` | tele → servidor | «Simular jugador»: ocupa un color libre y canta desde la tele. |
 | `{type:"kick", p}` · `{type:"new-code"}` | tele → servidor | Expulsar jugador · cerrar la sala y abrir otra. |
 | `{type:"resultado", p, r}` | tele → servidor | Al acabar una canción, el resultado de un cantante para su móvil: puesto, puntos, precisión, notas doradas, racha, mejor frase, modo, título, artista, carátula pequeña (JPEG en `data:`, < 60 KB) y la clasificación. El servidor lo limpia, añade fecha y sala, y lo reenvía solo al móvil de `p`. |
+| `{type:"pts", p, s}` | tele → servidor | Puntos en directo de un cantante (unas 4 veces por segundo, solo si cambian); el servidor los reenvía solo a su móvil. |
 | `{type:"buzz", p, k}` | tele → servidor | Aviso a un cantante: `k` = `"oro"` (nota dorada acertada) o `"frase"` (frase perfecta). El servidor solo lo reenvía al móvil del jugador `p`; cualquier otro `k` se descarta. |
 | `{type:"sing", song, duo, delay, singers:[{id, part, tol}]}` | tele → servidor | Empieza una canción: carpeta de la canción, si es modo Dúo, ajuste del micro (ms) y, por cantante, su id, su parte (0/1) y su margen en semitonos. El servidor lee la misma partitura y lleva su propia puntuación con la voz que reenvía ([PUNTUACION.md](PUNTUACION.md)). |
 | `{type:"clock", pos, playing, lat}` | tele → servidor | Cada segundo (y al pausar o seguir): segundo de la canción que suena, si está en marcha y media latencia de la tele (ms). |
@@ -43,6 +44,7 @@ Una conexión WebSocket en `/ws` por dispositivo; mensajes JSON con `type`.
 | `{type:"photo", data}` | móvil → servidor | Foto del jugador (cámara frontal, ≤48 KB). Solo se guarda en memoria mientras dura la sala. |
 | `{type:"roster", players}` · `{type:"host", online}` · `{type:"kicked"}` · `{type:"closed"}` | servidor → móvil | Lista de la sala, tele conectada o no, expulsado, sala cerrada. |
 | `{type:"resultado", r}` | servidor → móvil | Resultado de la canción: el móvil lo guarda en el historial (si está activado), revisa los logros y ofrece compartirlo como imagen (4 estilos). |
+| `{type:"pts", s}` | servidor → móvil | Tus puntos mientras cantas (arriba a la derecha de la pantalla del micro). |
 | `{type:"buzz", k}` | servidor → móvil | El móvil vibra si el cantante tiene activado «Vibrar al acertar» en sus ajustes. |
 | `{type:"admin", action:"toast", text}` | servidor → móvil | Aviso desde la administración (franja arriba unos segundos). |
 

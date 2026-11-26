@@ -154,6 +154,19 @@ window.GR = (() => {
   G.photos = {};
   G.photoOf = (id, col) => { const d = id && G.photos[id]; return d ? { ph: 'url("' + d + '") center / cover no-repeat', phw: 56, pho: '2px solid ' + (col || '#201e1d') } : { ph: 'none', phw: 0, pho: 'none' }; };
   G.isOff = i => i < G.players.length && !PLAYERS[i][5];
+  // Puntos en directo a cada móvil que canta (unas 4 veces por segundo y solo si han cambiado)
+  let ptsT = 0; const ptsUlt = new Map();
+  G.puntosMoviles = (S, score) => {
+    if (!G.net || G.preview) return;
+    const t = performance.now(); if (t - ptsT < 250) return; ptsT = t;
+    S.forEach((sg, k) => {
+      if (!sg || sg.id == null) return;
+      const v = Math.round(score[k] || 0);
+      if (ptsUlt.get(sg.id) === v) return;
+      ptsUlt.set(sg.id, v);
+      G.net.send({ type: 'pts', p: sg.id, s: v });
+    });
+  };
   // Aviso al móvil de un cantante (vibra si lo tiene activado en sus ajustes); los jugadores simulados no tienen móvil
   G.buzz = (sg, k) => { if (G.net && !G.preview && sg && sg.id != null) G.net.send({ type: 'buzz', p: sg.id, k }); };
   G.addBot = c => { if (G.players.length >= 8) return c.setState({ err: 'full' }); G.net && G.net.send({ type: 'bot' }); };
@@ -1417,6 +1430,7 @@ window.GR = (() => {
       while (h.length && h[0].t < now - 15) h.shift();
       c.disp[k] += (c.score[k] - c.disp[k]) * Math.min(1, dt * 6);
     }
+    G.puntosMoviles(S, c.score);
     // Cierre de notas y frases (con margen para que lleguen las últimas muestras)
     const done = now - 0.35;
     for (const n of ch.notes) {

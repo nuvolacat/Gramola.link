@@ -726,6 +726,12 @@ wss.on('connection', (ws, req) => {
         return;
       }
       if (m.type === 'clock') { if (room.sing) room.sing.setClock(m); return; }
+      // Puntos en directo de un cantante, a su móvil
+      if (m.type === 'pts') {
+        const p = room.players.get(m.p);
+        if (p) send(p.ws, { type: 'pts', s: Math.max(0, Math.min(10000, Math.round(Number(m.s) || 0))) });
+        return;
+      }
       // Aviso de la tele a un cantante (nota dorada acertada, frase perfecta): su móvil vibra si lo tiene activado
       if (m.type === 'buzz') {
         const p = room.players.get(m.p);

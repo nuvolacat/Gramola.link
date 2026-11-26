@@ -2,6 +2,9 @@
 
 Versiones con el esquema `1.AA.MMDD.HHMM` (fecha y hora del despliegue).
 
+## 1.26.1126.1140
+- **Pantalla de cantar rediseñada** (se canta con el móvil girado, su micro junto a la boca): todo el contenido gira 180° y se lee del derecho. Arriba, a la izquierda tu color y tu nombre, y a la derecha **tus puntos en directo** (la tele manda `pts` unas 4 veces por segundo). El micro es más largo (`jN-largo.webp`, generado con `tools/micro-largo.sh`: la empuñadura sigue su forma) y se desvanece al final en vez de cortarse; el vúmetro sigue en la rejilla.
+
 ## 1.26.1126.1134
 - **Tu resultado en el móvil**: al acabar una canción, la tele manda a cada cantante su resultado (`resultado`: puntos, puesto, precisión, notas doradas, racha, mejor frase, carátula pequeña y clasificación). En «Esperando» sale «Tu resultado · Ver y compartir».
 - **Compartir el resultado como imagen** (formato historia 1080×1920) en cuatro estilos a elegir: Póster, Entrada, Micro y Marcador. En la app, con la hoja de compartir del sistema; en el navegador, la suya o se descarga.

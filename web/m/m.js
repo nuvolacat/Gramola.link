@@ -204,6 +204,7 @@ function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
   // App: brillo bajo mientras se canta (si está activado) y aviso de batería en «Esperando»
   if (nat && aj('brillo') && (id === 's-sing') !== (antes === 's-sing')) nat.brillo({ bajo: id === 's-sing' }).catch(() => {});
+  if (id === 's-sing' && antes !== 's-sing') $('sing-pts').textContent = '0';   // canción nueva: los puntos empiezan de cero
   clearInterval(batT);
   if (id === 's-wait') { revisarBateria(); batT = setInterval(revisarBateria, 60000); } else $('tip-bat').hidden = true;
   document.querySelector('meta[name=theme-color]').content = id === 's-sing' ? '#f3f2f2' : '#f3f2f2';
@@ -282,6 +283,7 @@ function onMessage(m) {
     document.documentElement.style.setProperty('--me', m.color);
     ['badge-wait', 'badge-sing'].forEach(id => ($(id).textContent = 'J' + m.slot));
     $('who-wait').textContent = `${m.name} · Sala ${m.code}`;
+    $('sing-name').textContent = m.name;
     setMicImage(m.slot);
     // A partir de ahora, si se corta la red, volvemos a entrar con el mismo color
     hello = { type: 'join', code: m.code, name: m.name, slot: m.slot, token: m.token };
@@ -309,6 +311,7 @@ function onMessage(m) {
     return;
   }
   // Orden desde la administración: recargar la app (tras un despliegue)
+  if (m.type === 'pts') { $('sing-pts').textContent = miles(m.s); return; }
   if (m.type === 'buzz') { if (aj('vibCantar')) vibrar(m.k === 'frase' ? 60 : 30, m.k === 'frase' ? 'exito' : 'medio'); return; }
   if (m.type === 'admin' && m.action === 'reload') { setTimeout(() => location.reload(), 300 + Math.random() * 1500); return; }
   // Aviso desde la administración: una franja arriba unos segundos
@@ -457,7 +460,7 @@ const vu = $('vu');
 const BARS = 12;
 for (let i = 0; i < BARS; i++) {
   const b = document.createElement('i');
-  b.style.top = (60.2 + i * 2.15) + '%';
+  b.style.top = ((60.2 + i * 2.15) * 999 / 1420).toFixed(2) + '%';   // (medido sobre jN.webp de 999 px de alto; la alargada mide 1420)
   vu.appendChild(b);
 }
 let vuLevel = 0;
@@ -466,13 +469,13 @@ function drawVu(v, voiced) {
   vuLevel = target > vuLevel ? target : vuLevel * 0.82 + target * 0.18;
   const lit = Math.round(vuLevel * BARS);
   [...vu.children].forEach((b, i) => { b.style.opacity = BARS - i <= lit ? '1' : '0'; });
-  $('mic-img').style.transform = `scale(${1 + vuLevel * 0.025})`;
+  $('mic').firstElementChild.style.transform = `scale(${1 + vuLevel * 0.025})`;
 }
 
 function setMicImage(slot) {
   if (micImgSlot === slot) return;
   micImgSlot = slot;
-  $('mic-img').src = `/assets/micro/j${slot}.webp`;
+  $('mic-img').src = `/assets/micro/j${slot}-largo.webp`;
   $('mic-img').alt = `Micro J${slot}`;
 }
 

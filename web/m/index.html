@@ -30,7 +30,7 @@
 <meta name="twitter:image" content="%%ORIGEN%%/assets/og/gramola-og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/m/m.css?v=1.26.1126.1134">
+<link rel="stylesheet" href="/m/m.css?v=1.26.1126.1140">
 </head>
 <body>
   <!-- MOV-00 Instalar (desde el navegador) -->
@@ -159,10 +159,15 @@
 
   <!-- MOV-04 Cantando -->
   <section id="s-sing" class="screen sing">
-    <header class="bar"><span class="badge" id="badge-sing">J1</span></header>
-    <div class="mic" id="mic">
-      <img id="mic-img" alt="">
-      <div class="vu" id="vu"></div>
+    <!-- Se canta con el móvil girado (su micro abajo, junto a la boca): todo el contenido va girado 180° para leerse así -->
+    <div class="sing-giro">
+      <header class="sing-bar">
+        <div class="sing-j"><span id="badge-sing">J1</span><b id="sing-name"></b></div>
+        <div class="sing-p"><small>Puntos</small><b id="sing-pts">0</b></div>
+      </header>
+      <div class="mic" id="mic">
+        <div class="mic-box"><img id="mic-img" alt=""><div class="vu" id="vu"></div></div>
+      </div>
     </div>
   </section>
 
@@ -239,6 +244,6 @@
     <button class="cta" id="b-other">Unirme a otra sala <span>→</span></button>
   </section>
 
-<script type="module" src="/m/m.js?v=1.26.1126.1134"></script>
+<script type="module" src="/m/m.js?v=1.26.1126.1140"></script>
 </body>
 </html>
