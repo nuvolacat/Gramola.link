@@ -2,6 +2,9 @@
 
 Versiones con el esquema `1.AA.MMDD.HHMM` (fecha y hora del despliegue).
 
+## 1.26.1126.1205
+- App nativa (iOS): `addListener` devuelve el oyente y no una promesa; el `.catch` que se le ponía rompía el arranque del micro justo ahí. Ahora se aceptan las dos formas. Comprobado en el simulador de iPhone: el complemento nativo responde y el micro manda 25 lecturas por segundo.
+
 ## 1.26.1126.1202
 - App nativa: los complementos se toman de `Capacitor.Plugins` (en la app no existe `Capacitor.registerPlugin`, que solo trae el paquete de npm): sin esto, la app usaba los caminos de la web para el micro, la pantalla, la vibración y los enlaces. Comprobado en Android: micro nativo (`AudioRecord` con el micro integrado), y el QR abre la app directamente en la sala.
 - La app pregunta con qué enlace se ha abierto cuando ya ha cargado (al arrancar, Android aún no lo tiene) y, si es el de una sala, entra en ella en vez de volver a la sala anterior.

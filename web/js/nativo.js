@@ -38,7 +38,8 @@ export function urlDeArranque() {
 }
 export function alAbrirEnlace(cb) {
   if (!appPlugin) return;
-  appPlugin.addListener('appUrlOpen', e => cb(e && e.url)).catch(() => {});
+  // (según la versión, addListener devuelve el oyente o una promesa: se aceptan las dos)
+  try { const h = appPlugin.addListener('appUrlOpen', e => cb(e && e.url)); if (h && h.catch) h.catch(() => {}); } catch {}
   urlDeArranque().then(u => u && cb(u));
 }
 
