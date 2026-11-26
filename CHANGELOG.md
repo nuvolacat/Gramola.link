@@ -2,6 +2,10 @@
 
 Versiones con el esquema `1.AA.MMDD.HHMM` (fecha y hora del despliegue).
 
+## 1.26.1126.1143
+- **Reacciones del público**: mientras otro canta (o en los resultados), «Esperando» muestra «Anima a quien canta» con seis botones (aplauso, fuego, corazón, estrella, risa y fiesta). Cada toque sube por el lado derecho de la tele con el nombre de quien la manda, en su color (capa encima de todo, sin tocar el diseño; 24 a la vez como mucho). El servidor deja 4 por segundo por jugador. Ajuste «Reacciones del público» para quitarlas del móvil.
+- Los dibujos son de **Noto Emoji** (Google, Apache 2.0; `web/assets/reacciones` con su licencia): se ven igual en la tele LG, que no tiene emojis en color, y en los móviles. Añadido a los créditos.
+
 ## 1.26.1126.1140
 - **Pantalla de cantar rediseñada** (se canta con el móvil girado, su micro junto a la boca): todo el contenido gira 180° y se lee del derecho. Arriba, a la izquierda tu color y tu nombre, y a la derecha **tus puntos en directo** (la tele manda `pts` unas 4 veces por segundo). El micro es más largo (`jN-largo.webp`, generado con `tools/micro-largo.sh`: la empuñadura sigue su forma) y se desvanece al final en vez de cortarse; el vúmetro sigue en la rejilla.
 

@@ -95,6 +95,7 @@ window.GR = (() => {
       if (m.data) fetch(m.data).then(r => r.blob()).then(b => { G.photos[m.p] = URL.createObjectURL(b); const cc = g(); cc && cc.setState({}); }).catch(() => {});
       else if (c) c.setState({});
     }
+    else if (m.type === 'react') G.reaccion(m);
     else if (m.type === 'input') {
       const k = { up: 'u', down: 'd', left: 'l', right: 'r', ok: 'ok', back: 'back', y: 'y', x: 'x' }[m.key];
       // En la sala, Y añade un simulado y X echa al último: eso solo desde el mando de la tele, no desde un móvil
@@ -154,6 +155,32 @@ window.GR = (() => {
   G.photos = {};
   G.photoOf = (id, col) => { const d = id && G.photos[id]; return d ? { ph: 'url("' + d + '") center / cover no-repeat', phw: 56, pho: '2px solid ' + (col || '#201e1d') } : { ph: 'none', phw: 0, pho: 'none' }; };
   G.isOff = i => i < G.players.length && !PLAYERS[i][5];
+  // ------------------------------------------------------------------ reacciones del público
+  // Quien no canta manda desde su móvil un aplauso, fuego, corazón…: sube por el lado derecho de la tele con su
+  // nombre en su color (capa encima de todo; no toca el diseño). Como mucho 24 a la vez.
+  G.reaccion = m => {
+    if (G.preview || !/^[a-z]{3,10}$/.test(m.e || '')) return;
+    let caja = document.getElementById('g-reacciones');
+    if (!caja) {
+      caja = document.createElement('div'); caja.id = 'g-reacciones';
+      caja.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:40;overflow:hidden';
+      const st = document.createElement('style');
+      st.textContent = '@keyframes gReac{0%{transform:translate(0,0) scale(.4);opacity:0}10%{transform:translate(0,-6vh) scale(1.1);opacity:1}22%{transform:translate(0,-13vh) scale(1)}100%{transform:translate(var(--dx),-80vh) scale(.9);opacity:0}}'
+        + '.g-reac{position:absolute;bottom:5vh;display:flex;flex-direction:column;align-items:center;gap:.6vh;animation:gReac 3.4s cubic-bezier(.2,.7,.3,1) forwards}'
+        + '.g-reac img{width:7.5vh;height:7.5vh;filter:drop-shadow(0 .6vh 1vh rgba(0,0,0,.35))}'
+        + '.g-reac span{font:800 1.8vh Archivo,sans-serif;color:#201e1d;padding:.35vh .9vh;white-space:nowrap}';
+      document.head.appendChild(st); document.body.appendChild(caja);
+    }
+    if (caja.children.length >= 24) caja.firstChild.remove();
+    const d = document.createElement('div'); d.className = 'g-reac';
+    d.style.left = (83 + Math.random() * 11) + 'vw';
+    d.style.setProperty('--dx', ((Math.random() - 0.5) * 8).toFixed(1) + 'vw');
+    const im = document.createElement('img'); im.src = '/assets/reacciones/' + m.e + '.svg'; im.alt = '';
+    const n = document.createElement('span'); n.textContent = String(m.name || '').slice(0, 16);
+    n.style.background = /^#[0-9a-f]{6}$/i.test(m.color || '') ? m.color : '#fff';
+    d.append(im, n); caja.appendChild(d);
+    setTimeout(() => d.remove(), 3500);
+  };
   // Puntos en directo a cada móvil que canta (unas 4 veces por segundo y solo si han cambiado)
   let ptsT = 0; const ptsUlt = new Map();
   G.puntosMoviles = (S, score) => {
@@ -748,6 +775,7 @@ window.GR = (() => {
       'jsQR · Cosmo Wolfe · Licencia Apache 2.0 (lectura del QR con la cámara del móvil).',
       'Detección de tono: implementación propia del algoritmo YIN (de Cheveigné y Kawahara, 2002).',
       'Efectos de sonido y aplausos: sintetizados por el propio proyecto.',
+      'Reacciones del público: dibujos de Noto Emoji · Google · Licencia Apache 2.0.',
       'Música del menú: creada con SUNO.AI.',
     ]],
     ['Servidor', [

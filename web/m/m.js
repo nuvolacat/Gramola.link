@@ -48,6 +48,7 @@ const AJ = [
   { k: 'pantalla', t: 'Pantalla siempre encendida', d: 'Si la desactivas y el móvil se bloquea, el micro deja de oírte.', si: true },
   { k: 'brillo', t: 'Bajar el brillo al cantar', d: 'La pantalla se oscurece durante la canción para ahorrar batería y vuelve al acabar.', si: nativo },
   { k: 'bateria', t: 'Avisar con poca batería', d: 'Te avisa si queda poca batería o si el modo de ahorro está activado: puede frenar el micro.', si: nativo },
+  { k: 'reacciones', t: 'Reacciones del público', d: 'Mientras otro canta, manda aplausos, fuego o corazones que salen en la tele.', si: true },
   { k: 'historial', t: 'Guardar tu historial', d: 'Tus resultados y logros, solo en este móvil. Desactivado, puedes compartir el último pero no se guarda.', si: true },
   { k: 'microMovil', t: 'Usar siempre el micro del móvil', d: 'Aunque haya auriculares o AirPods conectados. Desactívalo para cantar con un micro externo.', si: true },
 ];
@@ -66,6 +67,7 @@ function aplicarAjuste(k) {
   }
   if (k === 'brillo' && nat && screen === 's-sing') nat.brillo({ bajo: aj('brillo') }).catch(() => {});
   if (k === 'bateria') revisarBateria();
+  if (k === 'reacciones') verReacciones(lastState);
   if (k === 'microMovil' && tracker && tracker.setIntegrado) tracker.setIntegrado(aj('microMovil'));
 }
 function pintarAjustes() {
@@ -112,6 +114,19 @@ async function revisarBateria() {
     tip.hidden = !t;
   } catch { tip.hidden = true; }
 }
+
+// Reacciones del público: mientras otro canta (o en los resultados), aplausos y demás que salen en la tele
+function verReacciones(st) {
+  const s = st && st.screen;
+  $('reac').hidden = !(aj('reacciones') && joined && ['sing', 'countdown', 'results'].includes(s) && !isSinging(st));
+}
+let reacT = 0;
+document.querySelectorAll('.reac-b button').forEach(b => b.addEventListener('click', () => {
+  const t = Date.now(); if (t - reacT < 250) return; reacT = t;   // (el servidor deja 4 por segundo)
+  net.send({ type: 'react', e: b.dataset.e });
+  toque(10);
+  b.classList.remove('hop'); void b.offsetWidth; b.classList.add('hop');
+}));
 
 // Aviso arriba (administración, logros…)
 function aviso(t, ms = 6000) {
@@ -347,6 +362,7 @@ function setWaitTexts(st) {
     pause: 'Canción en pausa',
   }[s] || 'Configura el modo de juego en la pantalla principal';
   $('wait-title').textContent = title;
+  verReacciones(st);
   $('wait-state').textContent = s === 'sing' ? 'Escuchando…' : 'Esperando…';
 }
 

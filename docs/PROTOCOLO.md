@@ -42,6 +42,7 @@ Una conexión WebSocket en `/ws` por dispositivo; mensajes JSON con `type`.
 | `{type:"error", code:"busy", msg}` | servidor → tele | No caben más salas (tope de 500 a la vez); la tele avisa y vuelve a pedir sala al cabo de 30 s. |
 | `{type:"pitch", n, v, lat}` · `{type:"input", key}` · `{type:"leave"}` | móvil → servidor | Voz (25/s), mando, salir. |
 | `{type:"photo", data}` | móvil → servidor | Foto del jugador (cámara frontal, ≤48 KB). Solo se guarda en memoria mientras dura la sala. |
+| `{type:"react", e}` | móvil → servidor → tele | Reacción del público (`aplauso`, `fuego`, `corazon`, `estrella`, `risa`, `fiesta`); como mucho 4 por segundo por jugador. A la tele le llega con `p`, `name` y `color`. |
 | `{type:"roster", players}` · `{type:"host", online}` · `{type:"kicked"}` · `{type:"closed"}` | servidor → móvil | Lista de la sala, tele conectada o no, expulsado, sala cerrada. |
 | `{type:"resultado", r}` | servidor → móvil | Resultado de la canción: el móvil lo guarda en el historial (si está activado), revisa los logros y ofrece compartirlo como imagen (4 estilos). |
 | `{type:"pts", s}` | servidor → móvil | Tus puntos mientras cantas (arriba a la derecha de la pantalla del micro). |

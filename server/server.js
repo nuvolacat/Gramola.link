@@ -23,6 +23,8 @@ const TV_HOST = String(process.env.TV_HOST || '').toLowerCase();   // dominio pr
 const MAX_PLAYERS = 8;
 const MAX_ROOMS = Number(process.env.MAX_ROOMS || 500);   // tope de salas a la vez (hay 6.390 códigos; sin tope, al agotarse el servidor se quedaría colgado)
 const ROOM_TTL_MS = 3 * 60 * 1000;  // la sala se cierra sola a los 3 min sin tele conectada (orden del usuario, 03-nov)
+// Reacciones del público que se pueden mandar a la tele (dibujos de Noto Emoji en web/assets/reacciones)
+const REACCIONES = ['aplauso', 'fuego', 'corazon', 'estrella', 'risa', 'fiesta'];
 // Un color por micro: J1..J8
 const COLORS = ['#ff4fa3', '#3fd0ff', '#ffd23f', '#7cff6b', '#b38cff', '#ff8a3d', '#4fffd8', '#ff5a5a'];
 
@@ -689,6 +691,15 @@ wss.on('connection', (ws, req) => {
         return;
       }
       if (m.type === 'input') return toHost(room, { type: 'input', p: player.id, key: clean(m.key, 8) });
+      // Reacción del público (aplauso, fuego…): a la tele, como mucho 4 por segundo por jugador
+      if (m.type === 'react') {
+        if (!REACCIONES.includes(m.e)) return;
+        const t = Date.now();
+        player.reacts = (player.reacts || []).filter(x => t - x < 1000);
+        if (player.reacts.length >= 4) return;
+        player.reacts.push(t);
+        return toHost(room, { type: 'react', p: player.id, e: m.e, name: player.name, color: COLORS[player.slot - 1] });
+      }
       // Foto del jugador (cámara frontal, JPEG pequeño): solo en memoria mientras dure la sala
       if (m.type === 'photo') {
         const data = typeof m.data === 'string' && m.data.length <= 48000 && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(m.data) ? m.data : '';
