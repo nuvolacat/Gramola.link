@@ -19,6 +19,7 @@ const WEB_DIR = process.env.WEB_DIR || path.join(__dirname, '..', 'web');
 const SONGS_DIR = process.env.SONGS_DIR || path.join(WEB_DIR, 'songs');
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const SERVE_STATIC = process.env.SERVE_STATIC !== '0';
+const TV_HOST = String(process.env.TV_HOST || '').toLowerCase();   // dominio propio de la tele (vacío = la tele sigue en /app)
 const MAX_PLAYERS = 8;
 const MAX_ROOMS = Number(process.env.MAX_ROOMS || 500);   // tope de salas a la vez (hay 6.390 códigos; sin tope, al agotarse el servidor se quedaría colgado)
 const ROOM_TTL_MS = 3 * 60 * 1000;  // la sala se cierra sola a los 3 min sin tele conectada (orden del usuario, 03-nov)
@@ -375,6 +376,20 @@ async function handleHttp(req, res) {
   // Subdominio micro.: la app del micro en la raíz
   if (MICRO_HOST.test(host) && MICRO_FILES[url.pathname] && (req.method === 'GET' || req.method === 'HEAD')) {
     return serveStatic(req, res, MICRO_FILES[url.pathname]);
+  }
+  // Dominio propio de la tele (TV_HOST): la tele se abre en su raíz; «www.» va al dominio sin www;
+  // y la dirección antigua (/app en la web) lleva allí conservando ?tv=… (el editor del admin sigue usando /app)
+  const hostName = host.toLowerCase().replace(/:\d+$/, '');
+  if (TV_HOST && (req.method === 'GET' || req.method === 'HEAD')) {
+    if (hostName === 'www.' + TV_HOST) {
+      res.writeHead(301, { location: 'https://' + TV_HOST + url.pathname + url.search });
+      return res.end();
+    }
+    if (hostName === TV_HOST && (url.pathname === '/' || url.pathname === '/index.html')) return serveStatic(req, res, '/app/index.html');
+    if (/^\/app(\/(index\.html)?)?$/.test(url.pathname) && !url.searchParams.has('preview') && (hostName === TV_HOST || !/^(admin|micro)\./.test(hostName))) {
+      res.writeHead(301, { location: 'https://' + TV_HOST + '/' + url.search });
+      return res.end();
+    }
   }
   // /setup ya no existe: a la portada
   if (!MICRO_HOST.test(host) && (url.pathname === '/setup' || url.pathname.startsWith('/setup/')) && req.method === 'GET') {

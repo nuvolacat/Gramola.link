@@ -46,6 +46,7 @@ Variables de entorno:
 | `SONGS_DIR` | `$WEB_DIR/songs` | Carpeta de canciones. |
 | `SERVE_STATIC` | `1` | Con `0`, el servidor solo atiende `/api` y `/ws` (si los estáticos los sirve nginx). |
 | `DATA_DIR` | `server/data` | Récords (`records.json`), estadísticas, actividad, llaves del admin y canciones retiradas. |
+| `TV_HOST` | — | Dominio propio de la tele (p. ej. `tele.ejemplo.com`): la tele se abre en su raíz, `micro.` de ese dominio es el micro, y `/app` de cualquier otro dominio redirige allí conservando `?tv=…` (el editor del admin sigue usando `/app/?preview=1`). Sin ella, la tele vive en `/app`. |
 | `ADMIN_HOST` | — | Host del portal de administración. Sin ella, cualquier host que empiece por `admin.` (en local, `admin.localhost:8877`). |
 
 En `localhost` el micro funciona porque los navegadores lo tratan como seguro. Como el micro solo funciona **instalado

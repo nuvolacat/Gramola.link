@@ -11,7 +11,7 @@
 La tele es el escenario (**funciona en el navegador**) y cada móvil es un micrófono:
 escaneas el QR, eliges tu color y cantas. Gramola escucha el tono de cada voz y puntúa lo afinado que vas.
 
-![Versión](https://img.shields.io/badge/versi%C3%B3n-1.26.1103.1347-ec3013)
+![Versión](https://img.shields.io/badge/versi%C3%B3n-1.26.1126.1031-ec3013)
 ![Navegador](https://img.shields.io/badge/navegador-Edge%20%C2%B7%20Chrome%20%C2%B7%20Safari-1f6feb)
 ![PWA](https://img.shields.io/badge/micro-web%20%2B%20PWA-ec3013)
 ![Node.js 22+](https://img.shields.io/badge/Node.js-22%2B-5fa04e?logo=nodedotjs&logoColor=white)
@@ -113,7 +113,7 @@ escaneas el QR, eliges tu color y cantas. Gramola escucha el tono de cada voz y 
 |---|---|
 | `/` | Web informativa (qué es, cómo se juega, modos y capturas). |
 | subdominio `micro.` | El micro (adonde lleva el QR de la tele); se puede instalar como app. |
-| `/app` | La interfaz de la tele, a pantalla completa en el navegador. |
+| `/app` | La interfaz de la tele, a pantalla completa en el navegador. Con `TV_HOST` la tele tiene dominio propio (en su raíz) y `/app` redirige allí. |
 
 Más detalle en **[docs/ARQUITECTURA.md](docs/ARQUITECTURA.md)**, **[docs/PROTOCOLO.md](docs/PROTOCOLO.md)** y **[docs/PUNTUACION.md](docs/PUNTUACION.md)**.
 

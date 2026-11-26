@@ -2,6 +2,9 @@
 
 Versiones con el esquema `1.AA.MMDD.HHMM` (fecha y hora del despliegue).
 
+## 1.26.1126.1031
+- **La tele tiene dominio propio**: con `TV_HOST` la tele se abre directamente en la raíz de ese dominio, su `micro.` es el micro (el QR y el «o entra en…» de la tele lo toman solos) y `www.` va al dominio sin www. La dirección antigua `/app` (y `/app/index.html`) redirige allí con un 301 conservando `?tv=…`, así las teles con la dirección vieja siguen entrando; la vista previa del editor (`/app/?preview=1`) y el admin no cambian.
+
 ## 1.26.1103.1347
 - Editor: el trozo de voz de una frase (cuando no empieza en un silencio) se afina con la curva de tono: empieza en el primer instante en que la voz tiene tono y acaba en el último. El reconocimiento adelanta cada palabra al hueco anterior (en «Dance The Night» unos 0,4 s) y marcaba en ámbar frases que estaban bien.
 
