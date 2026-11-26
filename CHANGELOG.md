@@ -2,6 +2,9 @@
 
 Versiones con el esquema `1.AA.MMDD.HHMM` (fecha y hora del despliegue).
 
+## 1.26.1126.1747
+- Web, sección de la app: ocho capturas del móvil en dos filas (antes cuatro y mucho hueco). Se suman entrar en la sala con nombre y código, probar el micro (afinador y rango de voz), otro de los diseños para compartir y los ajustes.
+
 ## 1.26.1126.1742
 - **Gramola Micro ya está en Google Play.** La insignia de la web pasa a «Disponible en Google Play» con su enlace, y la página del micro en un Android sin la app ofrece instalarla desde Play. La pregunta «¿Tengo que instalar algo?» lo dice (App Store, pronto).
 - Enlaces de la app en Android: se añade la huella del certificado de firma de Google Play a `APP_ANDROID_SHA256`, así que el QR de la tele abre directamente la app instalada desde Play.
